@@ -41,7 +41,7 @@ function fetchByOrder(urls, index, callback) {
         }
         ).then(text => {
             callback(text)
-            fetchByOrder(urls, count + 1, callback)
+            fetchByOrder(urls, index + 1, callback)
         })
 }
 
