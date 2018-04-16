@@ -48,14 +48,16 @@
 }
 
 .title {
-  padding: 16px !important;
-  margin-left: 13%
+  padding-top: 16px;
+  padding-right: 16px;
+  padding-bottom: 16px;
+  padding-left: 1px;
 }
 
 .s1 {
   font-size: 20px !important;
   color: #24292e !important;
-  margin-left: 5px
+  margin-left: 10px
 }
 
 .h-avatar {
