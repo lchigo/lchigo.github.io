@@ -13,6 +13,28 @@
   border-bottom: 1px solid #e1e4e8;
 }
 
+.menu-item:hover {
+  text-decoration: none;
+  background-color: #f6f8fa;
+}
+
+.menu-item.selected {
+  font-weight: 600;
+  color: #24292e;
+  cursor: default;
+  background-color: #fff;
+}
+
+.menu-item.selected::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  content: "";
+  background-color: #e36209;
+}
+
 .site-header {
   position: -webkit-sticky;
   position: sticky;
