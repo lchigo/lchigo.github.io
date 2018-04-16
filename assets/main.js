@@ -18,17 +18,31 @@ function initCategories(categories) {
 
 function loadArticles(articles) {
     const content = document.querySelector("#content")
+    const articlePaths = []
     articles.forEach(
         article => {
-            const div = document.createElement("div")
-            fetch(article.path).then(response => {
-                return response.text()
-            }).then(text => {
-                div.innerHTML = marked(text)
-                content.appendChild(div)
-            })
+            articlePaths.push(article.path)
         }
     )
+    fetchByOrder(articlePaths, 0, text => {
+        const div = document.createElement("div")
+        div.innerHTML = marked(text)
+        content.appendChild(div)
+    })
+}
+
+function fetchByOrder(urls, index, callback) {
+    if (index == urls.length) {
+        return
+    }
+    fetch(url[index])
+        .then(response => {
+            return response.text()
+        }
+        ).then(text => {
+            callback(text)
+            fetchByOrder(urls, count + 1, callback)
+        })
 }
 
 function main() {
