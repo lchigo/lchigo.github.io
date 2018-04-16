@@ -2,7 +2,9 @@
 let div = document.querySelector("#content")
 fetch('./docs/test.md')
     .then(function (response) {
-        let txt = response.text();
+        return response.text();
+    })
+    .then(function(txt){
         console.log(txt);
         div.innerHTML = marked(txt)
     })
