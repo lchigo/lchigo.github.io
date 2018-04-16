@@ -35,7 +35,7 @@ function fetchByOrder(urls, index, callback) {
     if (index == urls.length) {
         return
     }
-    fetch(url[index])
+    fetch(urls[index])
         .then(response => {
             return response.text()
         }
