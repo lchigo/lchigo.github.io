@@ -14,7 +14,7 @@
         },
         {
             "id": 3,
-            "name": "others",
+            "name": "other",
             "desc": "",
             "articles": []
         },
@@ -48,9 +48,9 @@
         },
         {
             "id": "e06ad2bd",
-            "title":"第1012章 尸殿",
+            "title":"python",
             "path": "docs/b.md",
-            "category": "book",
+            "category": "python",
             "desc": "",
             "date": "2018-4-17 03:52:04"
         }
