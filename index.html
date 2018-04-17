@@ -4,8 +4,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-    crossorigin="anonymous">
+  <link rel="stylesheet" href="assets/github.css" type="text/css" />
+  <link rel="stylesheet" href="assets/index.css" type="text/css" />
   <link rel="stylesheet" href="assets/main.css" type="text/css" />
   <link rel="icon" href="assets/x.ico" type="image/x-icon" />
   <title>Blog for myself</title>
@@ -14,48 +14,51 @@
 <body>
 
   <div class="site-header  mb-4 mb-md-6">
-    <div class="container">
-      <div class="title">
+    <div class="container-lg d-flex flex-justify-between p-3">
+
+      <div>
         <div class="h-avatar">
           <img src="assets/ichigo.gif" id="h-avatar" />
         </div>
-        <a href="/">
+        <a href="/" class="d-flex flex-items-center no-wrap text-gray-dark ">
           <span class="s1"> The Ichigo Blog</span>
         </a>
       </div>
-    </div>
-  </div>
-  </div>
-
-  <div class="container">
-
-
-    <div class="row">
-      <div class="col-9" id="content">
-
-      </div>
-      <div class="col-3">
-        <nav class="menu">
-        
-
-        </nav>
-
-      </div>
-
+      <button class="d-md-none btn-link link-gray site-header-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <svg height="24" class="octicon octicon-three-bars v-align-middle" viewBox="0 0 12 16" version="1.1" width="18" aria-hidden="true">
+          <path fill-rule="evenodd" d="M11.41 9H.59C0 9 0 8.59 0 8c0-.59 0-1 .59-1H11.4c.59 0 .59.41.59 1 0 .59 0 1-.59 1h.01zm0-4H.59C0 5 0 4.59 0 4c0-.59 0-1 .59-1H11.4c.59 0 .59.41.59 1 0 .59 0 1-.59 1h.01zM.59 11H11.4c.59 0 .59.41.59 1 0 .59 0 1-.59 1H.59C0 13 0 12.59 0 12c0-.59 0-1 .59-1z"></path>
+        </svg>
+      </button>
 
     </div>
+  </div>
+  </div>
+
+  <div class="container-lg px-3 d-flex">
+
+
+
+    <div class="col-12 col-md-8" id="content">
+
+    </div>
+    <div class="d-none d-md-block col-md-3 offset-md-1">
+      <nav class="menu">
+
+
+      </nav>
+
+    </div>
+
+
+
 
   </div>
 
 
-  <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-    crossorigin="anonymous"></script>
-  <script src="https://cdn.bootcss.com/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-    crossorigin="anonymous"></script>
-  <script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-    crossorigin="anonymous"></script>
+
 
   <script src="https://cdn.bootcss.com/marked/0.3.19/marked.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   <script src="assets/main.js"></script>
 </body>
 

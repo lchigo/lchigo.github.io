@@ -25,8 +25,10 @@ function loadArticles(articles) {
         }
     )
     fetchByOrder(articlePaths, 0, text => {
+        window.txt = text
         const div = document.createElement("div")
-        div.innerHTML = marked(text)
+        div.className = "article markdown-body"
+        div.innerHTML = marked(text, { highlight: code => { return hljs.highlightAuto(code).value } })
         content.appendChild(div)
     })
 }
@@ -47,12 +49,12 @@ function fetchByOrder(urls, index, callback) {
 
 function main() {
     const content = document.querySelector("#content")
+    // hljs.initHighlightingOnLoad()
     fetch('config.json')
         .then(response => {
             return response.json()
         })
         .then(config => {
-            console.log(config)
             initCategories(config.categories)
             return config
         }).then(config => {
