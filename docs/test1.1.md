@@ -1,4 +1,3 @@
-# Test code hihglight
 ## c
 ```c
 #include "stdio.h"

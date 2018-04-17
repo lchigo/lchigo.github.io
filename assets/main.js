@@ -1,55 +1,98 @@
-
-
 function initCategories(categories) {
     const nav = document.querySelector(".menu")
+    const mobileNav = document.querySelector(".site-header-nav.d-none.bg-gray-light")
     categories.sort((a, b) => {
         return a.name > b.name
     })
     categories.forEach(
         category => {
-            const a = document.createElement("a")
-            a.className = "menu-item"
-            a.href = "#"
-            a.innerHTML = category.name
-            nav.appendChild(a)
+            const attrs = {
+                "className": "menu-item",
+                "href": "#",
+                "innerHTML": category.name
+            }
+            nav.appendChild(createNode("a", attrs))
+            attrs["className"] = "d-block py-2 px-3 border-top text-gray-dark"
+            mobileNav.appendChild(createNode("a", attrs))
         }
     )
+}
+
+function createNode(nodeName, attributes) {
+    const node = document.createElement(nodeName)
+    const map = new Map(Object.entries(attributes));
+    map.forEach((k, v) => {
+        node[v] = k
+    })
+    return node
 }
 
 function loadArticles(articles) {
-    const content = document.querySelector("#content")
-    const articlePaths = []
-    articles.forEach(
-        article => {
-            articlePaths.push(article.path)
-        }
-    )
-    fetchByOrder(articlePaths, 0, text => {
-        window.txt = text
-        const div = document.createElement("div")
-        div.className = "article markdown-body"
-        div.innerHTML = marked(text, { highlight: code => { return hljs.highlightAuto(code).value } })
-        content.appendChild(div)
-    })
+    const contents = document.querySelector("#contents")
+    const callback = (text, article) => {
+        const box = createNode("div", { "className": "mb-5 pb-5" })
+        const h1 = createNode("h1", { "className": "lh-condensed" })
+        const a = createNode("a", {
+            "id": article.id,
+            "innerHTML": article.title
+        })
+        const ul = createNode("ul", { "className": "d-flex flex-wrap mt-1 mb-2 list-style-none text-gray" })
+        const li = createNode("li", {
+            "className": "my-1 mr-4 no-wrap",
+            "innerHTML": "<span class='d-inline-block v-align-middle overflow-hidden mr-1 rounded-1' style='width: 20px; height: 20px;'>" +
+                "<img src='data:image/svg+xml;base64,CjxzdmcgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDEwMDAgMTAwMCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMTAwMCAxMDAwIiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPG1ldGFkYXRhPiDnn6Lph4/lm77moIfkuIvovb0gOiBodHRwOi8vd3d3LnNmb250LmNuLyA8L21ldGFkYXRhPjxnPjxwYXRoIGQ9Ik03OTkuNyw4MS43SDY3OC4yVjQzLjVjMC0xOC41LTEzLjYtMzMuNS0zMC4yLTMzLjVjLTE2LjcsMC0zMC4yLDE1LTMwLjIsMzMuNXYzOC4ySDM4Mi4zVjQzLjVjMC0xOC41LTEzLjYtMzMuNS0zMC4yLTMzLjVjLTE2LjcsMC0zMC4yLDE1LTMwLjIsMzMuNXYzOC4ySDIwMC4zQzk1LjQsODEuNywxMCwxNzYuNCwxMCwyOTIuOHY0ODYuMUMxMCw4OTUuMyw5NS40LDk5MCwyMDAuMyw5OTBoNTk5LjVDOTA0LjYsOTkwLDk5MCw4OTUuMyw5OTAsNzc4LjlWMjkyLjhDOTkwLDE3Ni40LDkwNC42LDgxLjcsNzk5LjcsODEuN3ogTTIwMC4zLDExNS4yYzAsMCw4Mi4zLDAsMTIxLjYsMHY3OC40YzAsMTguNSwxMy42LDMzLjUsMzAuMiwzMy41YzE2LjcsMCwzMC4yLTE1LDMwLjItMzMuNXYtNzguNGM5OS42LDAsMTM1LjgsMCwyMzUuNCwwdjc4LjRjMCwxOC41LDEzLjYsMzMuNSwzMC4yLDMzLjVjMTYuNywwLDMwLjItMTUsMzAuMi0zMy41di03OC40YzM5LjMsMCwxMjEuNiwwLDEyMS42LDBjODguMiwwLDE2MCw3OS43LDE2MCwxNzcuNnY2MC43SDQwLjJ2LTYwLjdDNDAuMiwxOTQuOSwxMTIsMTE1LjIsMjAwLjMsMTE1LjJ6IE03OTkuNyw5NTYuNUgyMDAuM2MtODguMiwwLTE2MC03OS43LTE2MC0xNzcuNlYzODdoOTE5LjV2MzkyQzk1OS44LDg3Ni44LDg4OCw5NTYuNSw3OTkuNyw5NTYuNXoiPjwvcGF0aD48cGF0aCBkPSJNMTgzLjYsNTcxLjNjMCwzMi44LDI2LjYsNTkuMyw1OS4zLDU5LjNjMzIuOCwwLDU5LjMtMjYuNiw1OS4zLTU5LjNTMjc1LjcsNTEyLDI0Mi45LDUxMkMyMTAuMiw1MTIsMTgzLjYsNTM4LjUsMTgzLjYsNTcxLjNMMTgzLjYsNTcxLjN6Ij48L3BhdGg+PHBhdGggZD0iTTQ0MC43LDU3MS4zYzAsMzIuOCwyNi42LDU5LjMsNTkuMyw1OS4zYzMyLjgsMCw1OS4zLTI2LjYsNTkuMy01OS4zUzUzMi44LDUxMiw1MDAsNTEyQzQ2Ny4yLDUxMiw0NDAuNyw1MzguNSw0NDAuNyw1NzEuM0w0NDAuNyw1NzEuM3oiPjwvcGF0aD48cGF0aCBkPSJNNjk3LjcsNTcxLjNjMCwzMi44LDI2LjYsNTkuMyw1OS4zLDU5LjNjMzIuOCwwLDU5LjMtMjYuNiw1OS4zLTU5LjNTNzg5LjgsNTEyLDc1Ny4xLDUxMkM3MjQuMyw1MTIsNjk3LjcsNTM4LjUsNjk3LjcsNTcxLjN6Ij48L3BhdGg+PHBhdGggZD0iTTE4My42LDc3NC4zYzAsMzIuOCwyNi42LDU5LjMsNTkuMyw1OS4zYzMyLjgsMCw1OS4zLTI2LjYsNTkuMy01OS4zcy0yNi42LTU5LjMtNTkuMy01OS4zQzIxMC4yLDcxNC45LDE4My42LDc0MS41LDE4My42LDc3NC4zTDE4My42LDc3NC4zTDE4My42LDc3NC4zeiI+PC9wYXRoPjxwYXRoIGQ9Ik00NDAuNyw3NzQuM2MwLDMyLjgsMjYuNiw1OS4zLDU5LjMsNTkuM2MzMi44LDAsNTkuMy0yNi42LDU5LjMtNTkuM3MtMjYuNi01OS4zLTU5LjMtNTkuM0M0NjcuMiw3MTQuOSw0NDAuNyw3NDEuNSw0NDAuNyw3NzQuM0w0NDAuNyw3NzQuM0w0NDAuNyw3NzQuM3oiPjwvcGF0aD48cGF0aCBkPSJNNjk3LjcsNzc0LjNjMCwzMi44LDI2LjYsNTkuMyw1OS4zLDU5LjNjMzIuOCwwLDU5LjMtMjYuNiw1OS4zLTU5LjNzLTI2LjYtNTkuMy01OS4zLTU5LjNDNzI0LjMsNzE0LjksNjk3LjcsNzQxLjUsNjk3LjcsNzc0LjNMNjk3LjcsNzc0LjN6Ij48L3BhdGg+PC9nPjwvc3ZnPiAg'" +
+                "height='16px' width='16px'> </span>" +
+                article.date
+        })
+        const li2 = createNode("li", {
+            "className": "my-1 mr-4 no-wrap",
+            "innerHTML": "<span class='d-inline-block v-align-middle overflow-hidden mr-1 rounded-1' style='width: 20px; height: 20px;'>" +
+                "<img src='data:image/svg+xml;base64,CjxzdmcgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDEwMDAgMTAwMCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMTAwMCAxMDAwIiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPG1ldGFkYXRhPiDnn6Lph4/lm77moIfkuIvovb0gOiBodHRwOi8vd3d3LnNmb250LmNuLyA8L21ldGFkYXRhPjxnPjxwYXRoIGQ9Ik05MzUuNiwxMEg2NC40QzM0LjUsMTAsMTAsMzQuNSwxMCw2NC40djg3MS4xYzAsMjkuOSwyNC41LDU0LjQsNTQuNCw1NC40aDg3MS4xYzI5LjksMCw1NC40LTI0LjUsNTQuNC01NC40VjY0LjRDOTkwLDM0LjUsOTY1LjUsMTAsOTM1LjYsMTB6IE05MzUuNiw5MzUuNkg2NC40VjY0LjRoODcxLjFWOTM1LjZ6IE0yOTUuOCwzMDkuNEgxODYuOVYyNTVoMTA4LjlWMzA5LjR6IE04MTMuMSwzMDkuNEgzNTAuM1YyNTVoNDYyLjhWMzA5LjR6IE0yOTUuOCw1MjcuMkgxODYuOXYtNTQuNGgxMDguOVY1MjcuMnogTTgxMy4xLDUyNy4ySDM1MC4zdi01NC40aDQ2Mi44VjUyNy4yeiBNMjk1LjgsNzQ1SDE4Ni45di01NC40aDEwOC45Vjc0NXogTTgxMy4xLDc0NUgzNTAuM3YtNTQuNGg0NjIuOFY3NDV6Ij48L3BhdGg+PC9nPjwvc3ZnPiAg'" +
+                "height='16px' width='16px'> </span>" +
+                article.category
+        })
+
+        ul.appendChild(li)
+        ul.appendChild(li2)
+        const content = createNode("div", {
+            "className": "content markdown-body",
+            "innerHTML": marked(text, { highlight: code => { return hljs.highlightAuto(code).value } })
+        })
+        h1.appendChild(a)
+        box.appendChild(h1)
+        box.appendChild(ul)
+        box.appendChild(content)
+        contents.appendChild(box)
+    }
+    fetchByOrder(articles, 0, callback)
 }
 
-function fetchByOrder(urls, index, callback) {
-    if (index == urls.length) {
+
+function fetchByOrder(articles, index, callback) {
+    if (index == articles.length) {
         return
     }
-    fetch(urls[index])
+    fetch(articles[index].path)
         .then(response => {
             return response.text()
         }
         ).then(text => {
-            callback(text)
-            fetchByOrder(urls, index + 1, callback)
+            callback(text, articles[index])
+            fetchByOrder(articles, index + 1, callback)
         })
 }
 
+function listenEvents() {
+    const toggle = document.querySelector('.site-header-toggle');
+    const siteHeader = document.querySelector('.site-header')
+
+    toggle.addEventListener('click', function () {
+        siteHeader.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', !toggle.getAttribute('aria-expanded'));
+    });
+}
 function main() {
     const content = document.querySelector("#content")
-    // hljs.initHighlightingOnLoad()
     fetch('config.json')
         .then(response => {
             return response.json()
@@ -60,6 +103,7 @@ function main() {
         }).then(config => {
             loadArticles(config.articles)
         })
+    listenEvents()
 }
 
 main()

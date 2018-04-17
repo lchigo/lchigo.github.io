@@ -40,9 +40,17 @@
     "articles": [
         {
             "id": "e06ad2bd",
-            "title":"",
+            "title":"Test code hihglight",
             "path": "docs/test1.1.md",
-            "category": "3",
+            "category": "other",
+            "desc": "",
+            "date": "2018-4-17 03:52:04"
+        },
+        {
+            "id": "e06ad2bd",
+            "title":"第1012章 尸殿",
+            "path": "docs/b.md",
+            "category": "book",
             "desc": "",
             "date": "2018-4-17 03:52:04"
         }

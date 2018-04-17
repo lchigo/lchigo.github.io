@@ -19,7 +19,14 @@
 .article {
   margin-bottom: 7%
 }
-.title{
+
+.title {
   position: relative;
   float: left;
+}
+
+.nmenu {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 15%;
 }
