@@ -1,23 +1,3 @@
-function initCategories(categories) {
-    const nav = document.querySelector(".menu")
-    const mobileNav = document.querySelector(".site-header-nav.d-none.bg-gray-light")
-    categories.sort((a, b) => {
-        return a.name > b.name
-    })
-    categories.forEach(
-        category => {
-            const attrs = {
-                "className": "menu-item",
-                "href": "#",
-                "innerHTML": category.name
-            }
-            nav.appendChild(createNode("a", attrs))
-            attrs["className"] = "d-block py-2 px-3 border-top text-gray-dark"
-            mobileNav.appendChild(createNode("a", attrs))
-        }
-    )
-}
-
 function createNode(nodeName, attributes) {
     const node = document.createElement(nodeName)
     const map = new Map(Object.entries(attributes));
@@ -27,9 +7,15 @@ function createNode(nodeName, attributes) {
     return node
 }
 
-function loadArticles(articles) {
+function showViews() {
+
     const contents = document.querySelector("#contents")
-    const callback = (text, article) => {
+    const mark = document.querySelector("#mark")
+    document.querySelectorAll(".mb-5.pb-5").forEach(e => {
+        contents.removeChild(e)
+    })
+
+    const showArticle = (text, article) => {
         const box = createNode("div", { "className": "mb-5 pb-5" })
         const h1 = createNode("h1", { "className": "lh-condensed" })
         const a = createNode("a", {
@@ -62,14 +48,21 @@ function loadArticles(articles) {
         box.appendChild(h1)
         box.appendChild(ul)
         box.appendChild(content)
-        contents.appendChild(box)
+        contents.insertBefore(box, mark)
     }
-    fetchByOrder(articles, 0, callback)
+    const btns = document.querySelector('#pagebtn')
+    if (window.pageInfo.pageArticles.length == 0) {
+        btns.hidden = true
+        return
+    }
+    fetchByOrder(window.pageInfo.pageArticles, 0, showArticle, () => { btns.hidden = false })
 }
 
-
-function fetchByOrder(articles, index, callback) {
+function fetchByOrder(articles, index, callback, finishCallback) {
     if (index == articles.length) {
+        if (finishCallback) {
+            finishCallback()
+        }
         return
     }
     fetch(articles[index].path)
@@ -78,19 +71,173 @@ function fetchByOrder(articles, index, callback) {
         }
         ).then(text => {
             callback(text, articles[index])
-            fetchByOrder(articles, index + 1, callback)
+            fetchByOrder(articles, index + 1, callback, finishCallback)
         })
 }
 
-function listenEvents() {
-    const toggle = document.querySelector('.site-header-toggle');
-    const siteHeader = document.querySelector('.site-header')
+function parseConfig(config) {
+    const categoryMap = new Map()
+    const articleMap = new Map()
 
-    toggle.addEventListener('click', function () {
-        siteHeader.classList.toggle('open');
-        toggle.setAttribute('aria-expanded', !toggle.getAttribute('aria-expanded'));
-    });
+    config.articles.forEach(article => {
+        articleMap.set(article.id, article)
+        if (categoryMap.has(article.category)) {
+            categoryMap.get(article.category).push(article)
+        } else {
+            categoryMap.set(article.category, [article])
+        }
+
+    })
+
+    window.categoryMap = categoryMap
+    window.articleMap = articleMap
+    window.allArticles = config.articles
+    window.currentArticles = config.articles
+
 }
+
+function initPageInfo(page) {
+    let currentPage = page
+    let countPerPage = 2
+    let total = window.currentArticles.length
+    let lastPage = Math.floor(total / countPerPage)
+    let pageArticles = []
+
+    if (total % countPerPage == 0) {
+        lastPage--
+    }
+
+    if (lastPage >= 0) {
+        let start = currentPage * countPerPage
+        let remain = countPerPage
+        if ((currentPage == lastPage) && (total % countPerPage != 0)) {
+            remain = total % countPerPage
+        }
+        for (let i = start; i < start + remain; i++) {
+            pageArticles.push(window.currentArticles[i])
+        }
+    }
+
+    window.pageInfo = {
+        "currentPage": currentPage,
+        "lastPage": lastPage,
+        "countPerPage": countPerPage,
+        "total": window.currentArticles.length,
+        "pageArticles": pageArticles
+    }
+
+}
+
+function initCategories() {
+    const nav = document.querySelector(".menu")
+    const mobileNav = document.querySelector(".site-header-nav.d-none.bg-gray-light")
+    const categories = []
+    window.categoryMap.forEach((k, v) => {
+        categories.push(v)
+    })
+    categories.sort()
+    categories.forEach(
+        category => {
+            const attrs = {
+                "className": "menu-item",
+                "href": "javascript:void(0)",
+                "innerHTML": category
+            }
+            nav.appendChild(createNode("a", attrs))
+            attrs["className"] = "d-block py-2 px-3 border-top text-gray-dark"
+            mobileNav.appendChild(createNode("a", attrs))
+        }
+    )
+
+    const navs = document.querySelectorAll(".menu-item")
+    const mnavs = document.querySelectorAll(".d-block.py-2.px-3.border-top.text-gray-dark")
+    const siteHeader = document.querySelector('.site-header')
+    const listener = event => {
+        const category = event.target.innerHTML
+        window.currentArticles = categoryMap.has(category) ? categoryMap.get(category) : []
+        initPageInfo(0)
+        disableBtn()
+        showViews()
+    }
+
+    let selectedNav = navs[0]
+    navs.forEach(nav => {
+        nav.addEventListener('click', event => {
+            selectedNav.classList.remove("selected")
+            event.target.classList.add("selected")
+            selectedNav = event.target
+            listener(event)
+        })
+    })
+
+    mnavs.forEach(nav => {
+        nav.addEventListener('click', event => {
+            siteHeader.classList.toggle('open')
+            listener(event)
+        })
+    })
+}
+
+function switchPage(isNext) {
+    currentPage = window.pageInfo.currentPage
+    lastPage = window.pageInfo.lastPage
+    if (isNext && (currentPage < lastPage)) {
+        currentPage++
+    } else if (!isNext && (currentPage > 0)) {
+        currentPage--
+    }
+    initPageInfo(currentPage)
+    showViews()
+}
+
+function listenEvents() {
+    const toggle = document.querySelector('.site-header-toggle')
+    const siteHeader = document.querySelector('.site-header')
+    toggle.addEventListener('click', () => {
+        siteHeader.classList.toggle('open')
+        toggle.setAttribute('aria-expanded', !toggle.getAttribute('aria-expanded'))
+    })
+    // 翻页
+    const prev = document.querySelector('#prev')
+    const next = document.querySelector('#next')
+    const btns = document.querySelector('#pagebtn')
+    prev.addEventListener('click', () => {
+        if (prev.classList.contains("disabled")) {
+            return
+        }
+        switchPage(false)
+        disableBtn()
+        btns.hidden = true
+    })
+    next.addEventListener('click', () => {
+        if (next.classList.contains("disabled")) {
+            return
+        }
+        switchPage(true)
+        disableBtn()
+        btns.hidden = true
+    })
+    // 导航
+
+
+}
+
+function disableBtn() {
+    const prev = document.querySelector('#prev')
+    const next = document.querySelector('#next')
+    if (window.pageInfo.currentPage == 0) {
+        prev.classList.add("disabled")
+    } else {
+        prev.classList.remove("disabled")
+    }
+    if (window.pageInfo.currentPage == window.pageInfo.lastPage) {
+        next.classList.add("disabled")
+    } else {
+        next.classList.remove("disabled")
+    }
+
+}
+
 function main() {
     const content = document.querySelector("#content")
     fetch('config.json')
@@ -98,12 +245,16 @@ function main() {
             return response.json()
         })
         .then(config => {
-            initCategories(config.categories)
-            return config
-        }).then(config => {
-            loadArticles(config.articles)
+            parseConfig(config)
+            initPageInfo(0)
+            initCategories()
+
+            showViews()
+        }).then(c => {
+            disableBtn()
+            listenEvents()
         })
-    listenEvents()
+
 }
 
 main()
