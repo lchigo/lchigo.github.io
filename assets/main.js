@@ -152,10 +152,12 @@ function initCategories() {
     const navs = document.querySelectorAll(".menu-item")
     const mnavs = document.querySelectorAll(".d-block.py-2.px-3.border-top.text-gray-dark")
     const siteHeader = document.querySelector('.site-header')
+    const btns = document.querySelector('#pagebtn')
     const listener = event => {
         const category = event.target.innerHTML
         window.currentArticles = categoryMap.has(category) ? categoryMap.get(category) : []
         initPageInfo(0)
+        btns.hidden = true
         disableBtn()
         showViews()
     }
@@ -205,20 +207,18 @@ function listenEvents() {
         if (prev.classList.contains("disabled")) {
             return
         }
+        btns.hidden = true
         switchPage(false)
         disableBtn()
-        btns.hidden = true
     })
     next.addEventListener('click', () => {
         if (next.classList.contains("disabled")) {
             return
         }
+        btns.hidden = true
         switchPage(true)
         disableBtn()
-        btns.hidden = true
     })
-    // 导航
-
 
 }
 
