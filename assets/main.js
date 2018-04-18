@@ -98,7 +98,7 @@ function parseConfig(config) {
 
 function initPageInfo(page) {
     let currentPage = page
-    let countPerPage = 2
+    let countPerPage = 3
     let total = window.currentArticles.length
     let lastPage = Math.floor(total / countPerPage)
     let pageArticles = []
@@ -140,7 +140,6 @@ function initCategories() {
         category => {
             const attrs = {
                 "className": "menu-item",
-                "href": "javascript:void(0)",
                 "innerHTML": category
             }
             nav.appendChild(createNode("a", attrs))
