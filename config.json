@@ -1,7 +1,7 @@
 {
     "articles": [
         {
-            "id": "7d74fa8a43ca11e8b9dcced2fdf3ae6e",
+            "id": "46de9e2643cf11e8ac5eced2fdf3ae6e",
             "category": "java",
             "title": "a",
             "path": "docs/java/a.md",
@@ -9,7 +9,7 @@
             "desc": ""
         },
         {
-            "id": "7d765c5643ca11e881b0ced2fdf3ae6e",
+            "id": "46dfb07c43cf11e8afd8ced2fdf3ae6e",
             "category": "python",
             "title": "g",
             "path": "docs/python/g.md",
@@ -17,7 +17,7 @@
             "desc": ""
         },
         {
-            "id": "7d765c5543ca11e8a7c5ced2fdf3ae6e",
+            "id": "46dfb07b43cf11e8a1ecced2fdf3ae6e",
             "category": "python",
             "title": "f",
             "path": "docs/python/f.md",
@@ -25,7 +25,7 @@
             "desc": ""
         },
         {
-            "id": "7d765c5343ca11e8857bced2fdf3ae6e",
+            "id": "46df9cc643cf11e898bbced2fdf3ae6e",
             "category": "other",
             "title": "e",
             "path": "docs/other/e.md",
@@ -33,7 +33,7 @@
             "desc": ""
         },
         {
-            "id": "7d765c5243ca11e89b21ced2fdf3ae6e",
+            "id": "46df892d43cf11e89d29ced2fdf3ae6e",
             "category": "other",
             "title": "d",
             "path": "docs/other/d.md",
@@ -41,7 +41,7 @@
             "desc": ""
         },
         {
-            "id": "7d765c5443ca11e8a2f8ced2fdf3ae6e",
+            "id": "46dfb07a43cf11e8b738ced2fdf3ae6e",
             "category": "python",
             "title": "c",
             "path": "docs/python/c.md",
@@ -49,7 +49,7 @@
             "desc": ""
         },
         {
-            "id": "7d7648dc43ca11e8b501ced2fdf3ae6e",
+            "id": "46df892c43cf11e88110ced2fdf3ae6e",
             "category": "java",
             "title": "b",
             "path": "docs/java/b.md",
