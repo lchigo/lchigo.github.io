@@ -7,7 +7,7 @@ function createNode(nodeName, attributes) {
     return node
 }
 
-function showViews() {
+function showViews(one = false) {
 
     const contents = document.querySelector("#contents")
     const mark = document.querySelector("#mark")
@@ -44,7 +44,11 @@ function showViews() {
             "className": "content markdown-body",
             "innerHTML": marked(text, { highlight: code => { return hljs.highlightAuto(code).value } })
         })
-        h1.appendChild(a)
+        if (one) {
+            h1.innerHTML = article.title
+        } else {
+            h1.appendChild(a)
+        }
         box.appendChild(h1)
         box.appendChild(ul)
         box.appendChild(content)
@@ -55,7 +59,7 @@ function showViews() {
         btns.hidden = true
         return
     }
-    fetchByOrder(window.pageInfo.pageArticles, 0, showArticle, () => { btns.hidden = false })
+    fetchByOrder(window.pageInfo.pageArticles, 0, showArticle, one ? null : () => { btns.hidden = false })
 }
 
 function fetchByOrder(articles, index, callback, finishCallback) {
@@ -218,6 +222,22 @@ function listenEvents() {
         switchPage(true)
         disableBtn()
     })
+
+    const contents = document.querySelector('#contents')
+    contents.addEventListener("DOMNodeInserted",
+        event => {
+            const a = event.target.querySelector(".lh-condensed a")
+            if (a) {
+                a.addEventListener("click", () => {
+                    window.currentArticles = [articleMap.get(a.id)]
+                    initPageInfo(0)
+                    btns.hidden = true
+                    disableBtn()
+                    showViews(one = true)
+                })
+            }
+        }
+    )
 
 }
 
