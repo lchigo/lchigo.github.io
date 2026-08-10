@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'self'; script-src-attr 'none'; style-src 'self'; style-src-attr 'none'; img-src 'self' blob:; font-src 'self'; connect-src 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; frame-src 'none'; manifest-src 'none'; form-action 'none'">
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0a0c11">
     <meta name="description" content="在浏览器本地压缩内容，使用 AES-256-GCM 加密并隐写到图片中。">
@@ -124,7 +125,7 @@
 
                             <div class="capacity" id="capacity-box">
                                 <div><span>预计占用</span><strong id="capacity-label">等待选择图片</strong></div>
-                                <div class="capacity-track" aria-hidden="true"><span id="capacity-fill"></span></div>
+                                <div class="capacity-track"><progress id="capacity-fill" value="0" max="100" aria-label="预计容量占用"></progress></div>
                             </div>
 
                             <button class="primary-button" type="submit" id="hide-button">

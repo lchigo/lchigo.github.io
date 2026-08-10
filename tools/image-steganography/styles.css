@@ -539,16 +539,43 @@ textarea:focus,
     background: rgba(255, 255, 255, 0.07);
 }
 
-.capacity-track span {
+.capacity-track progress {
     display: block;
-    width: 0;
+    width: 100%;
     height: 100%;
+    appearance: none;
+    border: 0;
     border-radius: inherit;
+    background: transparent;
+    color: var(--accent);
+    overflow: hidden;
+}
+
+.capacity-track progress::-webkit-progress-bar {
+    background: transparent;
+}
+
+.capacity-track progress::-webkit-progress-value {
     background: linear-gradient(90deg, var(--violet), var(--accent));
+    border-radius: inherit;
     transition: width 180ms ease;
 }
 
-.capacity.over .capacity-track span {
+.capacity-track progress::-moz-progress-bar {
+    background: linear-gradient(90deg, var(--violet), var(--accent));
+    border-radius: inherit;
+    transition: width 180ms ease;
+}
+
+.capacity.over .capacity-track progress {
+    color: var(--danger);
+}
+
+.capacity.over .capacity-track progress::-webkit-progress-value {
+    background: var(--danger);
+}
+
+.capacity.over .capacity-track progress::-moz-progress-bar {
     background: var(--danger);
 }
 

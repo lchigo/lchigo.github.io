@@ -935,14 +935,14 @@ if (typeof document !== "undefined") {
     function updateCapacity() {
         if (!coverState) {
             elements.capacityLabel.textContent = "等待选择图片";
-            elements.capacityFill.style.width = "0%";
+            elements.capacityFill.value = 0;
             elements.capacityBox.classList.remove("over");
             return;
         }
         const estimated = estimateContainerLength(getPayloadPreview());
         const ratio = coverState.capacity > 0 ? estimated / coverState.capacity : 1;
         elements.capacityLabel.textContent = `≤ ${formatBytes(estimated)} / ${formatBytes(coverState.capacity)}`;
-        elements.capacityFill.style.width = `${Math.min(100, ratio * 100).toFixed(1)}%`;
+        elements.capacityFill.value = Math.min(100, ratio * 100);
         elements.capacityBox.classList.toggle("over", ratio > 1);
     }
 
