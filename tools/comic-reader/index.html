@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="dark">
+    <title>本地漫画阅读器</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="viewer" id="viewer" aria-busy="false">
+        <section id="initial-prompt" aria-labelledby="app-title">
+            <div class="prompt-card">
+                <div class="app-mark" aria-hidden="true">📚</div>
+                <h1 id="app-title">本地漫画阅读器</h1>
+                <p>选择图片文件夹，或直接打开 ZIP / CBZ 漫画包</p>
+                <div class="prompt-actions">
+                    <button type="button" class="primary-button" id="prompt-folder-btn">📂 选择文件夹</button>
+                    <button type="button" id="prompt-archive-btn">🗜️ 打开压缩包</button>
+                </div>
+                <p class="drop-hint">也可以把图片或压缩包拖到这里</p>
+            </div>
+        </section>
+
+        <div class="img-container" id="container-left">
+            <img class="comic-image" id="image-left" alt="" draggable="false" hidden>
+        </div>
+        <div class="img-container" id="container-right">
+            <img class="comic-image" id="image-right" alt="" draggable="false" hidden>
+        </div>
+
+        <div class="loading-overlay" id="loading-overlay" hidden>
+            <div class="spinner" aria-hidden="true"></div>
+            <p id="loading-text">正在加载…</p>
+        </div>
+    </main>
+
+    <footer class="controls" aria-label="阅读控制栏">
+        <div class="control-group source-group">
+            <button type="button" class="control-button file-button" id="folder-btn">📂 文件夹</button>
+            <input type="file" id="folder-input" webkitdirectory directory multiple hidden>
+            <button type="button" class="control-button file-button" id="archive-btn">🗜️ ZIP / CBZ</button>
+            <input type="file" id="archive-input" accept=".zip,.cbz,application/zip,application/vnd.comicbook+zip" hidden>
+            <span id="source-name" class="source-name" title="尚未打开漫画">尚未打开漫画</span>
+        </div>
+
+        <div class="control-group reader-group">
+            <button type="button" id="toggle-view-btn" disabled>双页</button>
+            <button type="button" id="direction-btn" disabled>左 → 右</button>
+            <button type="button" id="fullscreen-btn" disabled>⛶ 全屏</button>
+            <button type="button" id="autoplay-btn" disabled>▶ 自动</button>
+            <label class="interval-control" for="interval-input">
+                <input type="number" id="interval-input" value="30" min="1" max="3600" inputmode="numeric" disabled>
+                <span>秒</span>
+            </label>
+            <span id="countdown-display" class="countdown" aria-live="off"></span>
+        </div>
+
+        <div class="control-group nav-group">
+            <button type="button" id="prev-btn" disabled>上一页</button>
+            <button type="button" id="page-status" class="page-status" disabled aria-label="跳转页面">0 / 0</button>
+            <input type="number" id="page-jump-input" class="page-jump-input" min="1" inputmode="numeric" aria-label="输入页码" hidden>
+            <button type="button" id="next-btn" disabled>下一页</button>
+        </div>
+    </footer>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <script src="vendor/fflate.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
