@@ -1,8 +1,12 @@
 "use strict";
 
 const MAGIC = new TextEncoder().encode("STEGIMG1");
-const FORMAT_VERSION = 1;
-const PBKDF2_ITERATIONS = 250000;
+const LEGACY_FORMAT_VERSION = 1;
+const DISTRIBUTED_FORMAT_VERSION = 2;
+const FORMAT_VERSION = 3;
+const SUPPORTED_FORMAT_VERSIONS = [LEGACY_FORMAT_VERSION, DISTRIBUTED_FORMAT_VERSION, FORMAT_VERSION];
+const LEGACY_PBKDF2_ITERATIONS = 250000;
+const PBKDF2_ITERATIONS = 600000;
 const MIN_ACCEPTED_ITERATIONS = 100000;
 const MAX_ACCEPTED_ITERATIONS = 1000000;
 const SALT_LENGTH = 16;
@@ -23,14 +27,14 @@ function concatBytes(...parts) {
     return result;
 }
 
-function buildHeader(iterations, salt, iv, ciphertextLength) {
+function buildHeader(version, iterations, salt, iv, ciphertextLength) {
     const header = new Uint8Array(HEADER_LENGTH);
     const view = new DataView(header.buffer);
     let offset = 0;
 
     header.set(MAGIC, offset);
     offset += MAGIC.length;
-    header[offset] = FORMAT_VERSION;
+    header[offset] = version;
     offset += 1;
     view.setUint32(offset, iterations, false);
     offset += 4;
@@ -55,7 +59,9 @@ function parseHeader(headerBytes) {
     let offset = MAGIC.length;
     const version = headerBytes[offset];
     offset += 1;
-    if (version !== FORMAT_VERSION) throw new Error(`不支持的隐写格式版本：${version}`);
+    if (!SUPPORTED_FORMAT_VERSIONS.includes(version)) {
+        throw new Error(`不支持的隐写格式版本：${version}`);
+    }
 
     const iterations = view.getUint32(offset, false);
     offset += 4;
@@ -122,20 +128,23 @@ function parsePlaintext(plaintextBytes) {
     return { metadata, payload };
 }
 
-async function deriveEncryptionKey(password, salt, iterations, usages, cryptoSource = globalThis.crypto) {
+async function importPasswordKey(password, cryptoSource = globalThis.crypto) {
     if (!cryptoSource?.subtle || !cryptoSource?.getRandomValues) {
         throw new Error("当前环境不支持 Web Crypto API");
     }
 
     const passwordBytes = new TextEncoder().encode(password);
-    const keyMaterial = await cryptoSource.subtle.importKey(
+    return cryptoSource.subtle.importKey(
         "raw",
         passwordBytes,
         "PBKDF2",
         false,
-        ["deriveKey"]
+        ["deriveKey", "deriveBits"]
     );
+}
 
+async function deriveLegacyEncryptionKey(password, salt, iterations, usages, cryptoSource = globalThis.crypto) {
+    const keyMaterial = await importPasswordKey(password, cryptoSource);
     return cryptoSource.subtle.deriveKey(
         { name: "PBKDF2", hash: "SHA-256", salt, iterations },
         keyMaterial,
@@ -145,37 +154,64 @@ async function deriveEncryptionKey(password, salt, iterations, usages, cryptoSou
     );
 }
 
-async function encryptContainer(payloadBytes, metadata, password, cryptoSource = globalThis.crypto) {
-    if (typeof password !== "string" || password.length < 8) throw new Error("加密密码至少需要 8 位");
-    const plaintext = createPlaintext(payloadBytes, metadata);
-    const salt = cryptoSource.getRandomValues(new Uint8Array(SALT_LENGTH));
-    const iv = cryptoSource.getRandomValues(new Uint8Array(IV_LENGTH));
-    const ciphertextLength = plaintext.length + GCM_TAG_LENGTH;
-    const header = buildHeader(PBKDF2_ITERATIONS, salt, iv, ciphertextLength);
-    const key = await deriveEncryptionKey(password, salt, PBKDF2_ITERATIONS, ["encrypt"], cryptoSource);
-    const ciphertextBuffer = await cryptoSource.subtle.encrypt(
-        { name: "AES-GCM", iv, additionalData: header, tagLength: 128 },
-        key,
-        plaintext
+async function deriveV2KeyMaterial(password, salt, iterations, usages, cryptoSource = globalThis.crypto) {
+    const keyMaterial = await importPasswordKey(password, cryptoSource);
+    const derivedBits = new Uint8Array(await cryptoSource.subtle.deriveBits(
+        { name: "PBKDF2", hash: "SHA-256", salt, iterations },
+        keyMaterial,
+        384
+    ));
+    const rawEncryptionKey = derivedBits.slice(0, 32);
+    const placementSeed = derivedBits.slice(32, 48);
+    const key = await cryptoSource.subtle.importKey(
+        "raw",
+        rawEncryptionKey,
+        { name: "AES-GCM" },
+        false,
+        usages
     );
-    const ciphertext = new Uint8Array(ciphertextBuffer);
-    if (ciphertext.length !== ciphertextLength) throw new Error("加密结果长度异常");
-    return concatBytes(header, ciphertext);
+    derivedBits.fill(0);
+    rawEncryptionKey.fill(0);
+    return { key, placementSeed };
 }
 
-async function decryptContainer(containerBytes, password, cryptoSource = globalThis.crypto) {
-    if (typeof password !== "string" || password.length === 0) throw new Error("请输入解密密码");
+async function transformBytes(bytes, streamConstructor, format, operation) {
+    if (!(bytes instanceof Uint8Array)) throw new TypeError("待处理内容必须是 Uint8Array");
+    if (typeof streamConstructor !== "function") throw new Error(`当前浏览器不支持 ${format} ${operation}`);
+
+    try {
+        const transformedStream = new Blob([bytes])
+            .stream()
+            .pipeThrough(new streamConstructor(format));
+        return new Uint8Array(await new Response(transformedStream).arrayBuffer());
+    } catch (error) {
+        throw new Error(`${format} ${operation}失败：${error?.message || "数据格式无效"}`);
+    }
+}
+
+async function compressBytes(bytes) {
+    return transformBytes(
+        bytes,
+        globalThis.CompressionStream,
+        "gzip",
+        "压缩"
+    );
+}
+
+async function decompressBytes(bytes) {
+    return transformBytes(
+        bytes,
+        globalThis.DecompressionStream,
+        "gzip",
+        "解压"
+    );
+}
+
+async function decryptWithKey(containerBytes, key, cryptoSource = globalThis.crypto) {
     const header = containerBytes.slice(0, HEADER_LENGTH);
     const parsedHeader = parseHeader(header);
     const expectedLength = HEADER_LENGTH + parsedHeader.ciphertextLength;
     if (containerBytes.length !== expectedLength) throw new Error("隐写容器长度不匹配");
-    const key = await deriveEncryptionKey(
-        password,
-        parsedHeader.salt,
-        parsedHeader.iterations,
-        ["decrypt"],
-        cryptoSource
-    );
     const plaintextBuffer = await cryptoSource.subtle.decrypt(
         {
             name: "AES-GCM",
@@ -186,21 +222,101 @@ async function decryptContainer(containerBytes, password, cryptoSource = globalT
         key,
         containerBytes.subarray(HEADER_LENGTH)
     );
-    return parsePlaintext(new Uint8Array(plaintextBuffer));
+    const protectedPlaintext = new Uint8Array(plaintextBuffer);
+    const plaintext = parsedHeader.version === FORMAT_VERSION
+        ? await decompressBytes(protectedPlaintext)
+        : protectedPlaintext;
+    return parsePlaintext(plaintext);
 }
 
-function getImageCapacity(rgbaPixels) {
+async function createEncryptedPackage(
+    payloadBytes,
+    metadata,
+    password,
+    cryptoSource = globalThis.crypto,
+    version = FORMAT_VERSION
+) {
+    if (typeof password !== "string" || password.length < 8) throw new Error("加密密码至少需要 8 位");
+    if (!SUPPORTED_FORMAT_VERSIONS.includes(version)) throw new Error("不支持的加密格式版本");
+    const plaintext = createPlaintext(payloadBytes, metadata);
+    const protectedPlaintext = version === FORMAT_VERSION ? await compressBytes(plaintext) : plaintext;
+    const salt = cryptoSource.getRandomValues(new Uint8Array(SALT_LENGTH));
+    const iv = cryptoSource.getRandomValues(new Uint8Array(IV_LENGTH));
+    const ciphertextLength = protectedPlaintext.length + GCM_TAG_LENGTH;
+    const iterations = version === LEGACY_FORMAT_VERSION ? LEGACY_PBKDF2_ITERATIONS : PBKDF2_ITERATIONS;
+    const header = buildHeader(version, iterations, salt, iv, ciphertextLength);
+    const material = version === LEGACY_FORMAT_VERSION
+        ? {
+            key: await deriveLegacyEncryptionKey(password, salt, iterations, ["encrypt", "decrypt"], cryptoSource),
+            placementSeed: null
+        }
+        : await deriveV2KeyMaterial(password, salt, iterations, ["encrypt", "decrypt"], cryptoSource);
+    const ciphertextBuffer = await cryptoSource.subtle.encrypt(
+        { name: "AES-GCM", iv, additionalData: header, tagLength: 128 },
+        material.key,
+        protectedPlaintext
+    );
+    const ciphertext = new Uint8Array(ciphertextBuffer);
+    if (ciphertext.length !== ciphertextLength) throw new Error("加密结果长度异常");
+    return {
+        version,
+        header,
+        ciphertext,
+        container: concatBytes(header, ciphertext),
+        material,
+        plaintextLength: plaintext.length,
+        protectedPlaintextLength: protectedPlaintext.length
+    };
+}
+
+async function encryptContainer(payloadBytes, metadata, password, cryptoSource = globalThis.crypto, version = FORMAT_VERSION) {
+    return (await createEncryptedPackage(payloadBytes, metadata, password, cryptoSource, version)).container;
+}
+
+async function decryptContainer(containerBytes, password, cryptoSource = globalThis.crypto) {
+    if (typeof password !== "string" || password.length === 0) throw new Error("请输入解密密码");
+    const header = containerBytes.slice(0, HEADER_LENGTH);
+    const parsedHeader = parseHeader(header);
+    const material = parsedHeader.version === LEGACY_FORMAT_VERSION
+        ? {
+            key: await deriveLegacyEncryptionKey(
+                password,
+                parsedHeader.salt,
+                parsedHeader.iterations,
+                ["decrypt"],
+                cryptoSource
+            )
+        }
+        : await deriveV2KeyMaterial(
+            password,
+            parsedHeader.salt,
+            parsedHeader.iterations,
+            ["decrypt"],
+            cryptoSource
+        );
+    return decryptWithKey(containerBytes, material.key, cryptoSource);
+}
+
+function getEligibleChannelCount(rgbaPixels) {
     let eligiblePixels = 0;
     for (let index = 3; index < rgbaPixels.length; index += 4) {
         if (rgbaPixels[index] === 255) eligiblePixels += 1;
     }
-    return Math.floor((eligiblePixels * 3) / 8);
+    return eligiblePixels * 3;
 }
 
-function embedBytes(rgbaPixels, bytes) {
-    const capacity = getImageCapacity(rgbaPixels);
-    if (bytes.length > capacity) {
-        throw new Error(`载体容量不足：需要 ${bytes.length} 字节，可用 ${capacity} 字节`);
+function getImageCapacity(rgbaPixels) {
+    return Math.floor(getEligibleChannelCount(rgbaPixels) / 8);
+}
+
+function getGzipUpperBound(byteLength) {
+    if (!Number.isSafeInteger(byteLength) || byteLength < 0) throw new Error("待压缩数据长度无效");
+    return byteLength + Math.ceil(Math.max(1, byteLength) / 16384) * 8 + 32;
+}
+
+function embedBytes(rgbaPixels, bytes, eligibleChannelCount = getEligibleChannelCount(rgbaPixels)) {
+    if (bytes.length * 8 > eligibleChannelCount) {
+        throw new Error(`载体容量不足：需要 ${bytes.length} 字节，可用 ${Math.floor(eligibleChannelCount / 8)} 字节`);
     }
 
     const output = new Uint8ClampedArray(rgbaPixels);
@@ -219,9 +335,8 @@ function embedBytes(rgbaPixels, bytes) {
     return output;
 }
 
-function extractBytes(rgbaPixels, byteLength) {
-    const capacity = getImageCapacity(rgbaPixels);
-    if (!Number.isInteger(byteLength) || byteLength < 0 || byteLength > capacity) {
+function extractBytes(rgbaPixels, byteLength, eligibleChannelCount = getEligibleChannelCount(rgbaPixels)) {
+    if (!Number.isInteger(byteLength) || byteLength < 0 || byteLength * 8 > eligibleChannelCount) {
         throw new Error("请求提取的数据长度超出图片容量");
     }
 
@@ -242,12 +357,277 @@ function extractBytes(rgbaPixels, byteLength) {
 }
 
 function extractContainer(rgbaPixels) {
-    if (getImageCapacity(rgbaPixels) < HEADER_LENGTH) throw new Error("图片尺寸太小，无法包含有效隐写数据");
-    const header = extractBytes(rgbaPixels, HEADER_LENGTH);
+    const eligibleChannelCount = getEligibleChannelCount(rgbaPixels);
+    if (eligibleChannelCount < HEADER_LENGTH * 8) throw new Error("图片尺寸太小，无法包含有效隐写数据");
+    const header = extractBytes(rgbaPixels, HEADER_LENGTH, eligibleChannelCount);
     const parsedHeader = parseHeader(header);
+    if (parsedHeader.version !== LEGACY_FORMAT_VERSION) throw new Error("该图片使用分散式隐写格式");
     const totalLength = HEADER_LENGTH + parsedHeader.ciphertextLength;
-    if (totalLength > getImageCapacity(rgbaPixels)) throw new Error("隐写数据长度超过图片容量，文件可能已损坏");
-    return extractBytes(rgbaPixels, totalLength);
+    if (totalLength * 8 > eligibleChannelCount) throw new Error("隐写数据长度超过图片容量，文件可能已损坏");
+    return extractBytes(rgbaPixels, totalLength, eligibleChannelCount);
+}
+
+async function computeCoverFingerprint(rgbaPixels, cryptoSource = globalThis.crypto) {
+    const pixelCount = Math.floor(rgbaPixels.length / 4);
+    const sampleLimit = 4096;
+    const samples = new Uint8Array(4 + Math.min(pixelCount, sampleLimit) * 4);
+    const sampleView = new DataView(samples.buffer);
+    sampleView.setUint32(0, pixelCount, false);
+    let sampleOffset = 4;
+    let sampledPixels = 0;
+
+    for (let pixelOffset = 0; pixelOffset < rgbaPixels.length && sampledPixels < sampleLimit; pixelOffset += 4) {
+        if (rgbaPixels[pixelOffset + 3] !== 255) continue;
+        samples[sampleOffset] = rgbaPixels[pixelOffset] & 0xfe;
+        samples[sampleOffset + 1] = rgbaPixels[pixelOffset + 1] & 0xfe;
+        samples[sampleOffset + 2] = rgbaPixels[pixelOffset + 2] & 0xfe;
+        samples[sampleOffset + 3] = 255;
+        sampleOffset += 4;
+        sampledPixels += 1;
+    }
+
+    if (sampledPixels === 0) throw new Error("图片没有可用于隐写的不透明像素");
+    return new Uint8Array(await cryptoSource.subtle.digest("SHA-256", samples.subarray(0, sampleOffset)));
+}
+
+async function createHeaderMask(fingerprint, cryptoSource = globalThis.crypto) {
+    const label = new TextEncoder().encode("stegimg-v2-header-mask");
+    const mask = new Uint8Array(HEADER_LENGTH);
+    let outputOffset = 0;
+    let counter = 0;
+
+    while (outputOffset < mask.length) {
+        const counterBytes = new Uint8Array(4);
+        new DataView(counterBytes.buffer).setUint32(0, counter, false);
+        const block = new Uint8Array(await cryptoSource.subtle.digest(
+            "SHA-256",
+            concatBytes(fingerprint, label, counterBytes)
+        ));
+        const take = Math.min(block.length, mask.length - outputOffset);
+        mask.set(block.subarray(0, take), outputOffset);
+        outputOffset += take;
+        counter += 1;
+    }
+
+    return mask;
+}
+
+async function maskV2Header(header, fingerprint, cryptoSource = globalThis.crypto) {
+    const mask = await createHeaderMask(fingerprint, cryptoSource);
+    return Uint8Array.from(header, (value, index) => value ^ mask[index]);
+}
+
+function rotateLeft32(value, shift) {
+    return ((value << shift) | (value >>> (32 - shift))) >>> 0;
+}
+
+function createPlacementPrng(seedBytes) {
+    if (!(seedBytes instanceof Uint8Array) || seedBytes.length < 16) throw new Error("分散写入种子无效");
+    const view = new DataView(seedBytes.buffer, seedBytes.byteOffset, seedBytes.byteLength);
+    let state0 = view.getUint32(0, false);
+    let state1 = view.getUint32(4, false);
+    let state2 = view.getUint32(8, false);
+    let state3 = view.getUint32(12, false);
+    if ((state0 | state1 | state2 | state3) === 0) state0 = 0x9e3779b9;
+
+    return function nextUint32() {
+        const result = Math.imul(rotateLeft32(Math.imul(state1, 5) >>> 0, 7), 9) >>> 0;
+        const temporary = (state1 << 9) >>> 0;
+        state2 ^= state0;
+        state3 ^= state1;
+        state1 ^= state2;
+        state0 ^= state3;
+        state2 ^= temporary;
+        state3 = rotateLeft32(state3, 11);
+        return result;
+    };
+}
+
+function randomUintBelow(maxExclusive, nextUint32) {
+    const range = 0x100000000;
+    const limit = range - (range % maxExclusive);
+    let value;
+    do {
+        value = nextUint32();
+    } while (value >= limit);
+    return value % maxExclusive;
+}
+
+function embedDistributedBytes(rgbaPixels, headerBytes, ciphertextBytes, placementSeed, eligibleChannelCount) {
+    const headerBits = headerBytes.length * 8;
+    const ciphertextBits = ciphertextBytes.length * 8;
+    if (headerBits + ciphertextBits > eligibleChannelCount) throw new Error("载体图片容量不足");
+
+    const output = new Uint8ClampedArray(rgbaPixels);
+    const nextUint32 = createPlacementPrng(placementSeed);
+    let headerBitIndex = 0;
+    let ciphertextBitIndex = 0;
+    let remainingChannels = eligibleChannelCount - headerBits;
+    let remainingCiphertextBits = ciphertextBits;
+
+    for (let pixelOffset = 0; pixelOffset < output.length; pixelOffset += 4) {
+        if (output[pixelOffset + 3] !== 255) continue;
+        for (let channel = 0; channel < 3; channel += 1) {
+            if (headerBitIndex < headerBits) {
+                const bit = (headerBytes[headerBitIndex >> 3] >> (7 - (headerBitIndex & 7))) & 1;
+                output[pixelOffset + channel] = (output[pixelOffset + channel] & 0xfe) | bit;
+                headerBitIndex += 1;
+                continue;
+            }
+
+            if (remainingCiphertextBits === 0) return output;
+            const selected = remainingCiphertextBits === remainingChannels
+                || randomUintBelow(remainingChannels, nextUint32) < remainingCiphertextBits;
+            if (selected) {
+                const bit = (ciphertextBytes[ciphertextBitIndex >> 3] >> (7 - (ciphertextBitIndex & 7))) & 1;
+                output[pixelOffset + channel] = (output[pixelOffset + channel] & 0xfe) | bit;
+                ciphertextBitIndex += 1;
+                remainingCiphertextBits -= 1;
+            }
+            remainingChannels -= 1;
+        }
+    }
+
+    if (remainingCiphertextBits !== 0) throw new Error("分散写入未能完成");
+    return output;
+}
+
+function extractDistributedCiphertext(
+    rgbaPixels,
+    ciphertextLength,
+    placementSeed,
+    eligibleChannelCount
+) {
+    const headerBits = HEADER_LENGTH * 8;
+    const ciphertextBits = ciphertextLength * 8;
+    if (headerBits + ciphertextBits > eligibleChannelCount) throw new Error("隐写数据超过图片容量");
+
+    const output = new Uint8Array(ciphertextLength);
+    const nextUint32 = createPlacementPrng(placementSeed);
+    let skippedHeaderBits = 0;
+    let ciphertextBitIndex = 0;
+    let remainingChannels = eligibleChannelCount - headerBits;
+    let remainingCiphertextBits = ciphertextBits;
+
+    for (let pixelOffset = 0; pixelOffset < rgbaPixels.length; pixelOffset += 4) {
+        if (rgbaPixels[pixelOffset + 3] !== 255) continue;
+        for (let channel = 0; channel < 3; channel += 1) {
+            if (skippedHeaderBits < headerBits) {
+                skippedHeaderBits += 1;
+                continue;
+            }
+
+            if (remainingCiphertextBits === 0) return output;
+            const selected = remainingCiphertextBits === remainingChannels
+                || randomUintBelow(remainingChannels, nextUint32) < remainingCiphertextBits;
+            if (selected) {
+                output[ciphertextBitIndex >> 3] |= (rgbaPixels[pixelOffset + channel] & 1)
+                    << (7 - (ciphertextBitIndex & 7));
+                ciphertextBitIndex += 1;
+                remainingCiphertextBits -= 1;
+            }
+            remainingChannels -= 1;
+        }
+    }
+
+    if (remainingCiphertextBits !== 0) throw new Error("分散提取未能完成");
+    return output;
+}
+
+async function embedEncryptedPackage(
+    rgbaPixels,
+    encryptedPackage,
+    cryptoSource = globalThis.crypto,
+    eligibleChannelCount = getEligibleChannelCount(rgbaPixels)
+) {
+    if (encryptedPackage.version === LEGACY_FORMAT_VERSION) {
+        return embedBytes(rgbaPixels, encryptedPackage.container, eligibleChannelCount);
+    }
+    const fingerprint = await computeCoverFingerprint(rgbaPixels, cryptoSource);
+    const maskedHeader = await maskV2Header(encryptedPackage.header, fingerprint, cryptoSource);
+    return embedDistributedBytes(
+        rgbaPixels,
+        maskedHeader,
+        encryptedPackage.ciphertext,
+        encryptedPackage.material.placementSeed,
+        eligibleChannelCount
+    );
+}
+
+async function inspectStegoImage(
+    rgbaPixels,
+    cryptoSource = globalThis.crypto,
+    eligibleChannelCount = getEligibleChannelCount(rgbaPixels)
+) {
+    if (eligibleChannelCount < HEADER_LENGTH * 8) throw new Error("图片尺寸太小，无法包含有效隐写数据");
+    const embeddedHeader = extractBytes(rgbaPixels, HEADER_LENGTH, eligibleChannelCount);
+
+    try {
+        const legacyHeader = parseHeader(embeddedHeader);
+        if (legacyHeader.version === LEGACY_FORMAT_VERSION) {
+            const totalLength = HEADER_LENGTH + legacyHeader.ciphertextLength;
+            if (totalLength * 8 > eligibleChannelCount) throw new Error("隐写数据长度超过图片容量");
+            return {
+                version: LEGACY_FORMAT_VERSION,
+                header: embeddedHeader,
+                parsedHeader: legacyHeader,
+                eligibleChannelCount,
+                container: extractBytes(rgbaPixels, totalLength, eligibleChannelCount)
+            };
+        }
+    } catch {
+        // Distributed formats mask the fixed header, so a plaintext parse is expected to fail.
+    }
+
+    const fingerprint = await computeCoverFingerprint(rgbaPixels, cryptoSource);
+    const header = await maskV2Header(embeddedHeader, fingerprint, cryptoSource);
+    let parsedHeader;
+    try {
+        parsedHeader = parseHeader(header);
+    } catch {
+        throw new Error("未检测到本工具生成的隐写数据");
+    }
+    if (![DISTRIBUTED_FORMAT_VERSION, FORMAT_VERSION].includes(parsedHeader.version)) {
+        throw new Error("隐写格式版本无效");
+    }
+    if ((HEADER_LENGTH + parsedHeader.ciphertextLength) * 8 > eligibleChannelCount) {
+        throw new Error("隐写数据长度超过图片容量，文件可能已损坏");
+    }
+    return {
+        version: parsedHeader.version,
+        header,
+        parsedHeader,
+        eligibleChannelCount,
+        fingerprint,
+        container: null
+    };
+}
+
+async function decryptStegoPayload(
+    rgbaPixels,
+    inspection,
+    password,
+    cryptoSource = globalThis.crypto,
+    existingMaterial = null
+) {
+    if (inspection.version === LEGACY_FORMAT_VERSION) {
+        return decryptContainer(inspection.container, password, cryptoSource);
+    }
+
+    const material = existingMaterial || await deriveV2KeyMaterial(
+        password,
+        inspection.parsedHeader.salt,
+        inspection.parsedHeader.iterations,
+        ["decrypt"],
+        cryptoSource
+    );
+    const ciphertext = extractDistributedCiphertext(
+        rgbaPixels,
+        inspection.parsedHeader.ciphertextLength,
+        material.placementSeed,
+        inspection.eligibleChannelCount
+    );
+    return decryptWithKey(concatBytes(inspection.header, ciphertext), material.key, cryptoSource);
 }
 
 if (typeof document !== "undefined") {
@@ -442,15 +822,18 @@ if (typeof document !== "undefined") {
             canvas.width = decodedImage.width;
             canvas.height = decodedImage.height;
             const context = canvas.getContext("2d", { willReadFrequently: true });
+            if (!context) throw new Error("当前浏览器无法创建图片处理画布");
             context.drawImage(decodedImage.source, 0, 0);
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const eligibleChannelCount = getEligibleChannelCount(imageData.data);
             return {
                 canvas,
                 context,
                 imageData,
                 width: canvas.width,
                 height: canvas.height,
-                capacity: getImageCapacity(imageData.data)
+                eligibleChannelCount,
+                capacity: Math.floor(eligibleChannelCount / 8)
             };
         } finally {
             decodedImage.close();
@@ -491,11 +874,16 @@ if (typeof document !== "undefined") {
         try {
             setStatus(elements.extractStatus, "正在检查图片…", "info");
             const image = await loadImagePixels(file);
-            const container = extractContainer(image.imageData.data);
-            stegoState = { ...image, file, container };
+            const inspection = await inspectStegoImage(
+                image.imageData.data,
+                globalThis.crypto,
+                image.eligibleChannelCount
+            );
+            stegoState = { ...image, file, inspection };
+            const hiddenLength = HEADER_LENGTH + inspection.parsedHeader.ciphertextLength;
             elements.stegoSummary.hidden = false;
-            elements.stegoSummary.textContent = `${file.name} · ${image.width} × ${image.height} · 检测到 ${formatBytes(container.length)} 加密数据`;
-            setStatus(elements.extractStatus, "检测到有效隐写容器，请输入密码解密。", "success");
+            elements.stegoSummary.textContent = `${file.name} · ${image.width} × ${image.height} · v${inspection.version} · ${formatBytes(hiddenLength)} 加密数据`;
+            setStatus(elements.extractStatus, `检测到 v${inspection.version} 隐写容器，请输入密码解密。`, "success");
         } catch (error) {
             stegoState = null;
             elements.stegoSummary.hidden = false;
@@ -540,7 +928,8 @@ if (typeof document !== "undefined") {
             ...preview.metadata,
             size: payloadLength
         })).length;
-        return HEADER_LENGTH + GCM_TAG_LENGTH + 4 + metadataLength + payloadLength;
+        const plaintextLength = 4 + metadataLength + payloadLength;
+        return HEADER_LENGTH + GCM_TAG_LENGTH + getGzipUpperBound(plaintextLength);
     }
 
     function updateCapacity() {
@@ -552,7 +941,7 @@ if (typeof document !== "undefined") {
         }
         const estimated = estimateContainerLength(getPayloadPreview());
         const ratio = coverState.capacity > 0 ? estimated / coverState.capacity : 1;
-        elements.capacityLabel.textContent = `${formatBytes(estimated)} / ${formatBytes(coverState.capacity)}`;
+        elements.capacityLabel.textContent = `≤ ${formatBytes(estimated)} / ${formatBytes(coverState.capacity)}`;
         elements.capacityFill.style.width = `${Math.min(100, ratio * 100).toFixed(1)}%`;
         elements.capacityBox.classList.toggle("over", ratio > 1);
     }
@@ -573,23 +962,34 @@ if (typeof document !== "undefined") {
             return;
         }
 
-        setButtonBusy(elements.hideButton, true, "正在加密并写入…");
+        setButtonBusy(elements.hideButton, true, "正在压缩、加密并写入…");
         try {
             const payload = await getPayloadForEncryption();
-            const container = await encryptContainer(payload.payload, payload.metadata, password);
-            if (container.length > coverState.capacity) {
-                throw new Error(`图片容量不足：需要 ${formatBytes(container.length)}，可用 ${formatBytes(coverState.capacity)}`);
+            const encryptedPackage = await createEncryptedPackage(payload.payload, payload.metadata, password);
+            if (encryptedPackage.container.length > coverState.capacity) {
+                throw new Error(`图片容量不足：需要 ${formatBytes(encryptedPackage.container.length)}，可用 ${formatBytes(coverState.capacity)}`);
             }
-            const embeddedPixels = embedBytes(coverState.imageData.data, container);
+            const embeddedPixels = await embedEncryptedPackage(
+                coverState.imageData.data,
+                encryptedPackage,
+                globalThis.crypto,
+                coverState.eligibleChannelCount
+            );
             const outputImageData = new ImageData(embeddedPixels, coverState.width, coverState.height);
             coverState.context.putImageData(outputImageData, 0, 0);
             const blob = await canvasToPngBlob(coverState.canvas);
+            setButtonBusy(elements.hideButton, true, "正在回读验证输出…");
+            await validateOutputBlob(blob, payload, password, encryptedPackage);
             showHideOutput(blob, coverState.file.name);
-            setStatus(elements.hideStatus, `加密完成，已写入 ${formatBytes(container.length)} 隐写数据。`, "success");
+            setStatus(
+                elements.hideStatus,
+                `完成并通过回读验证：压缩 ${formatBytes(encryptedPackage.plaintextLength)} → ${formatBytes(encryptedPackage.protectedPlaintextLength)}，加密后写入 ${formatBytes(encryptedPackage.container.length)}。`,
+                "success"
+            );
         } catch (error) {
             setStatus(elements.hideStatus, error.message || "隐写加密失败。", "error");
         } finally {
-            setButtonBusy(elements.hideButton, false, "加密并写入图片");
+            setButtonBusy(elements.hideButton, false, "压缩、加密并写入图片");
         }
     }
 
@@ -600,6 +1000,43 @@ if (typeof document !== "undefined") {
                 else reject(new Error("无法生成 PNG 文件"));
             }, "image/png");
         });
+    }
+
+    function bytesEqual(left, right) {
+        if (left.length !== right.length) return false;
+        let difference = 0;
+        for (let index = 0; index < left.length; index += 1) difference |= left[index] ^ right[index];
+        return difference === 0;
+    }
+
+    async function validateOutputBlob(blob, originalPayload, password, encryptedPackage) {
+        const verificationFile = new File([blob], "verification.png", { type: "image/png" });
+        const verificationImage = await loadImagePixels(verificationFile);
+        try {
+            const inspection = await inspectStegoImage(
+                verificationImage.imageData.data,
+                globalThis.crypto,
+                verificationImage.eligibleChannelCount
+            );
+            if (inspection.version !== FORMAT_VERSION || !bytesEqual(inspection.header, encryptedPackage.header)) {
+                throw new Error("输出 PNG 的隐写头部验证失败");
+            }
+            const recovered = await decryptStegoPayload(
+                verificationImage.imageData.data,
+                inspection,
+                password,
+                globalThis.crypto,
+                encryptedPackage.material
+            );
+            if (!bytesEqual(recovered.payload, originalPayload.payload)
+                || recovered.metadata.kind !== originalPayload.metadata.kind
+                || recovered.metadata.name !== originalPayload.metadata.name) {
+                throw new Error("输出 PNG 的隐藏内容验证失败");
+            }
+        } finally {
+            verificationImage.canvas.width = 0;
+            verificationImage.canvas.height = 0;
+        }
     }
 
     function showHideOutput(blob, originalName) {
@@ -626,7 +1063,7 @@ if (typeof document !== "undefined") {
 
     async function handleExtractSubmit(event) {
         event.preventDefault();
-        if (!stegoState?.container) {
+        if (!stegoState?.inspection) {
             setStatus(elements.extractStatus, "请先选择包含有效隐写数据的 PNG。", "error");
             return;
         }
@@ -636,12 +1073,17 @@ if (typeof document !== "undefined") {
             return;
         }
 
-        setButtonBusy(elements.extractButton, true, "正在认证并解密…");
+        setButtonBusy(elements.extractButton, true, "正在认证、解密并解压…");
         clearExtractResult();
         try {
-            const result = await decryptContainer(stegoState.container, password);
+            const result = await decryptStegoPayload(
+                stegoState.imageData.data,
+                stegoState.inspection,
+                password
+            );
             showExtractedResult(result);
-            setStatus(elements.extractStatus, `解密成功，已恢复 ${formatBytes(result.payload.length)} 内容。`, "success");
+            const action = stegoState.inspection.version === FORMAT_VERSION ? "解密解压" : "解密";
+            setStatus(elements.extractStatus, `${action}成功，已恢复 ${formatBytes(result.payload.length)} 内容。`, "success");
         } catch {
             setStatus(elements.extractStatus, "解密失败：密码错误，或图片中的隐写数据已损坏。", "error");
         } finally {
@@ -720,17 +1162,30 @@ if (typeof document !== "undefined") {
 if (typeof module !== "undefined" && module.exports) {
     module.exports = {
         FORMAT_VERSION,
+        DISTRIBUTED_FORMAT_VERSION,
+        LEGACY_FORMAT_VERSION,
         HEADER_LENGTH,
         MAGIC,
         buildHeader,
+        computeCoverFingerprint,
+        compressBytes,
         concatBytes,
+        createEncryptedPackage,
         createPlaintext,
         decryptContainer,
+        decryptStegoPayload,
+        decompressBytes,
         embedBytes,
+        embedDistributedBytes,
+        embedEncryptedPackage,
         encryptContainer,
         extractBytes,
         extractContainer,
+        extractDistributedCiphertext,
+        getEligibleChannelCount,
+        getGzipUpperBound,
         getImageCapacity,
+        inspectStegoImage,
         parseHeader,
         parsePlaintext
     };

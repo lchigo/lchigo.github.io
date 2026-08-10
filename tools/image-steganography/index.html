@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0a0c11">
-    <meta name="description" content="在浏览器本地使用 AES-256-GCM 加密内容并隐写到图片中。">
+    <meta name="description" content="在浏览器本地压缩内容，使用 AES-256-GCM 加密并隐写到图片中。">
     <title>图片隐写加密工具</title>
     <link rel="icon" type="image/png" sizes="64x64" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
@@ -27,17 +27,17 @@
         <main>
             <section class="hero" aria-labelledby="page-title">
                 <div>
-                    <p class="eyebrow">AES-256-GCM · IMAGE LSB</p>
+                    <p class="eyebrow">GZIP · AES-256-GCM · IMAGE LSB</p>
                     <h1 id="page-title">图片隐写<br>加密工具</h1>
                 </div>
-                <p class="hero-copy">先加密，再将密文隐藏进图片像素。图片、内容和密码始终留在你的设备上。</p>
+                <p class="hero-copy">先压缩和加密，再将密文隐藏进图片像素。图片、内容和密码始终留在你的设备上。</p>
             </section>
 
             <section class="tool-panel" aria-label="图片隐写操作区">
                 <div class="tabs" role="tablist" aria-label="操作模式">
                     <button class="tab active" id="hide-tab" type="button" role="tab" aria-selected="true" aria-controls="hide-panel" data-tab="hide">
                         <span class="tab-number">01</span>
-                        <span><strong>隐藏内容</strong><small>加密并写入图片</small></span>
+                        <span><strong>隐藏内容</strong><small>压缩、加密并写入图片</small></span>
                     </button>
                     <button class="tab" id="extract-tab" type="button" role="tab" aria-selected="false" aria-controls="extract-panel" data-tab="extract" tabindex="-1">
                         <span class="tab-number">02</span>
@@ -128,7 +128,7 @@
                             </div>
 
                             <button class="primary-button" type="submit" id="hide-button">
-                                <span>加密并写入图片</span>
+                                <span>压缩、加密并写入图片</span>
                                 <span aria-hidden="true">→</span>
                             </button>
                             <div class="status status-info" id="hide-status" role="status" aria-live="polite">选择图片后即可开始。</div>
@@ -241,14 +241,14 @@
             </section>
 
             <section class="method-note" aria-label="使用说明">
-                <div><span>01</span><strong>加密</strong><p>PBKDF2 从密码派生密钥，AES-256-GCM 加密并认证内容。</p></div>
-                <div><span>02</span><strong>隐写</strong><p>密文写入 RGB 通道最低有效位，避免改变图片尺寸和透明度。</p></div>
+                <div><span>01</span><strong>压缩加密</strong><p>先用 gzip 压缩，再通过 PBKDF2 和 AES-256-GCM 加密认证。</p></div>
+                <div><span>02</span><strong>隐写</strong><p>按密码派生的顺序，将密文分散写入 RGB 通道最低有效位。</p></div>
                 <div><span>03</span><strong>限制</strong><p>隐写用于降低内容可见性，不代表无法被专业隐写分析检测。</p></div>
             </section>
         </main>
 
         <footer>
-            <span>Web Crypto API · AES-256-GCM · PBKDF2-SHA-256</span>
+            <span>GZIP · Web Crypto API · AES-256-GCM · PBKDF2-SHA-256</span>
             <span>© 2026 lchigo</span>
         </footer>
     </div>
