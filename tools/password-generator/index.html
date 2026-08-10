@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0b0d12">
+    <meta name="description" content="使用浏览器加密级随机数，在本地生成安全的随机密码。">
+    <title>随机密码生成器</title>
+    <link rel="icon" type="image/png" sizes="64x64" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
+    <div class="app-shell">
+        <header class="topbar">
+            <a class="brand" href="../" aria-label="返回工具目录">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <span>lchigo / tools</span>
+            </a>
+            <span class="privacy-label"><i aria-hidden="true"></i>仅在本机生成</span>
+        </header>
+
+        <main>
+            <section class="hero" aria-labelledby="page-title">
+                <div>
+                    <p class="eyebrow">SECURE RANDOM · LOCAL ONLY</p>
+                    <h1 id="page-title">随机密码<br>生成器</h1>
+                </div>
+                <p class="hero-copy">使用浏览器提供的加密级随机数生成密码。结果不会上传，也不会保存在本地。</p>
+            </section>
+
+            <section class="workspace" aria-label="随机密码生成器">
+                <section class="result-panel panel" aria-labelledby="result-title">
+                    <div class="panel-header">
+                        <div>
+                            <span class="section-kicker">GENERATED PASSWORDS</span>
+                            <h2 id="result-title">生成结果</h2>
+                        </div>
+                        <div class="header-actions">
+                            <button class="text-button" type="button" id="toggle-visibility" aria-pressed="false">隐藏密码</button>
+                            <button class="text-button" type="button" id="copy-all">复制全部</button>
+                        </div>
+                    </div>
+
+                    <div id="status" class="status status-info" role="status" aria-live="polite">正在安全生成密码…</div>
+                    <ol id="password-list" class="password-list" aria-label="生成的密码"></ol>
+
+                    <div class="strength-card">
+                        <div class="strength-heading">
+                            <span>随机强度估算</span>
+                            <strong id="strength-label">—</strong>
+                        </div>
+                        <div class="strength-track" aria-hidden="true">
+                            <span id="strength-fill"></span>
+                        </div>
+                        <div class="strength-metrics">
+                            <span><strong id="entropy-value">—</strong> bits 估算熵</span>
+                            <span><strong id="pool-size">—</strong> 个可用字符</span>
+                        </div>
+                    </div>
+
+                    <button class="generate-button" type="button" id="regenerate">
+                        <span>重新生成</span>
+                        <span aria-hidden="true">↻</span>
+                    </button>
+                </section>
+
+                <aside class="settings-panel panel" aria-labelledby="settings-title">
+                    <div class="settings-heading">
+                        <span class="section-kicker">OPTIONS</span>
+                        <h2 id="settings-title">生成设置</h2>
+                    </div>
+
+                    <form id="settings-form">
+                        <fieldset class="setting-group">
+                            <legend>密码长度</legend>
+                            <div class="length-control">
+                                <input type="range" id="length-range" min="4" max="128" value="20" aria-label="密码长度">
+                                <input type="number" id="length-number" min="4" max="128" value="20" inputmode="numeric" aria-label="密码长度数值">
+                            </div>
+                            <div class="presets" aria-label="常用长度">
+                                <button type="button" data-length="16">16</button>
+                                <button type="button" data-length="20" class="active">20</button>
+                                <button type="button" data-length="32">32</button>
+                                <button type="button" data-length="64">64</button>
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="setting-group">
+                            <legend>字符类型</legend>
+                            <div class="option-grid">
+                                <label class="option-card">
+                                    <input type="checkbox" name="character-type" value="lower" checked>
+                                    <span class="check-indicator" aria-hidden="true"></span>
+                                    <span><strong>小写字母</strong><small>a–z</small></span>
+                                </label>
+                                <label class="option-card">
+                                    <input type="checkbox" name="character-type" value="upper" checked>
+                                    <span class="check-indicator" aria-hidden="true"></span>
+                                    <span><strong>大写字母</strong><small>A–Z</small></span>
+                                </label>
+                                <label class="option-card">
+                                    <input type="checkbox" name="character-type" value="numbers" checked>
+                                    <span class="check-indicator" aria-hidden="true"></span>
+                                    <span><strong>数字</strong><small>0–9</small></span>
+                                </label>
+                                <label class="option-card">
+                                    <input type="checkbox" name="character-type" value="symbols" checked>
+                                    <span class="check-indicator" aria-hidden="true"></span>
+                                    <span><strong>特殊符号</strong><small>! @ # …</small></span>
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="setting-group compact-options">
+                            <legend>附加选项</legend>
+                            <label class="switch-row">
+                                <span><strong>排除易混淆字符</strong><small>I、l、1、O、0、o、|</small></span>
+                                <input type="checkbox" id="exclude-ambiguous" checked>
+                                <span class="switch" aria-hidden="true"></span>
+                            </label>
+                            <label class="switch-row">
+                                <span><strong>包含每种字符类型</strong><small>每个已选类型至少出现一次</small></span>
+                                <input type="checkbox" id="ensure-each" checked>
+                                <span class="switch" aria-hidden="true"></span>
+                            </label>
+                        </fieldset>
+
+                        <label class="quantity-field" for="quantity">
+                            <span><strong>生成数量</strong><small>一次最多生成 10 个</small></span>
+                            <input type="number" id="quantity" min="1" max="10" value="3" inputmode="numeric">
+                        </label>
+
+                        <button class="sr-submit" type="submit">应用设置并生成</button>
+                    </form>
+                </aside>
+            </section>
+
+            <section class="security-note" aria-label="安全说明">
+                <span class="security-mark" aria-hidden="true">✓</span>
+                <div>
+                    <strong>密码只存在于当前页面内存中</strong>
+                    <p>工具不会发送、记录或保存生成结果。关闭或刷新页面后，当前密码将消失。</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <span>Web Crypto API · rejection sampling</span>
+            <span>© 2026 lchigo</span>
+        </footer>
+    </div>
+
+    <noscript>此工具需要启用 JavaScript 才能生成密码。</noscript>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -2,455 +2,129 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0b0d12">
+    <meta name="description" content="在浏览器中设置、求解并验证点灯谜题，支持 1×1 至 15×15 棋盘。">
     <title>“点灯”谜题求解器</title>
     <link rel="icon" type="image/png" href="icon.png">
-    <style>
-        /* --- 页面基础样式 --- */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background-color: #1e1e2c;
-            color: #f0f0f0;
-            margin: 0;
-        }
-
-        /* --- 控制器区域 --- */
-        .controls {
-            margin: 20px;
-            padding: 15px;
-            background-color: #2b2b40;
-            border-radius: 8px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .controls label {
-            font-weight: bold;
-        }
-        .controls input[type="number"] {
-            width: 50px;
-            padding: 5px;
-            border: none;
-            border-radius: 4px;
-            background-color: #3c3c5a;
-            color: #f0f0f0;
-            text-align: center;
-        }
-        /* 隐藏 input[type=number] 的小箭头 */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-
-        .controls button {
-            padding: 8px 15px;
-            font-size: 14px;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        #create-board {
-            background-color: #4a4a70;
-            color: #f0f0f0;
-        }
-        #create-board:hover {
-            background-color: #5a5a80;
-        }
-        #solve-button {
-            background-color: #00aaff;
-            color: #1e1e2c;
-        }
-        #solve-button:hover {
-            background-color: #33bbff;
-        }
-        #clear-solution {
-            background-color: #ff4757;
-            color: #ffffff;
-        }
-        #clear-solution:hover {
-            background-color: #ff6b81;
-        }
-        
-        /* --- 消息区域 --- */
-        #message {
-            margin: 10px;
-            font-size: 1.1em;
-            font-weight: bold;
-            min-height: 1.2em;
-        }
-        .message-success {
-            color: #2ecc71; /* 绿色 */
-        }
-        .message-error {
-            color: #e74c3c; /* 红色 */
-        }
-        .message-info {
-            color: #3498db; /* 蓝色 */
-        }
-
-
-        /* --- 棋盘样式 --- */
-        #board-container {
-            display: grid;
-            border: 2px solid #3c3c5a;
-            background-color: #2b2b40;
-            border-radius: 8px;
-            padding: 10px;
-            gap: 8px; /* 格子之间的间隙 */
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .cell {
-            width: 70px;
-            height: 70px;
-            border: 2px solid #1e1e2c;
-            border-radius: 6px;
-            background-color: #555; /* 默认：暗 */
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative; /* 用于定位“解法”标记 */
-            box-shadow: inset 0 3px 5px rgba(0,0,0,0.2);
-        }
-
-        /* 状态：亮 (on) */
-        .cell.on {
-            background-color: #00ffff; /* 亮蓝色 */
-            border-color: #00ffff;
-            box-shadow: inset 0 0 10px #00ffff, 0 0 15px #00ffff;
-        }
-
-        /* 状态：暗 (off) */
-        .cell.off {
-            background-color: #4a4a5a;
-            border-color: #3c3c5a;
-        }
-
-        /* 解法标记：显示需要按下的格子 */
-        .cell.solution-press::after {
-            content: '◆'; /* 使用一个符号来标记 */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            font-size: 50px;
-            color: #ffdd57; /* 亮黄色 */
-            text-shadow: 0 0 10px #e85a4f; /* 红色光晕 */
-            pointer-events: none; /* 允许点击穿透 */
-        }
-
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
 
-    <h1>“点灯”谜题求解器</h1>
-    <p>点击格子来设置“初始状态”，然后点击求解。</p>
+    <div class="app-shell">
+        <header class="topbar">
+            <a class="brand" href="../" aria-label="返回工具目录">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <span>lchigo / tools</span>
+            </a>
+            <a class="back-link" href="../">全部工具 <span aria-hidden="true">↗</span></a>
+        </header>
 
-    <div class="controls">
-        <label for="rows">行数:</label>
-        <input type="number" id="rows" value="3" min="1" max="15">
-        <label for="cols">列数:</label>
-        <input type="number" id="cols" value="3" min="1" max="15">
-        <button id="create-board">生成/重置棋盘</button>
-        <button id="solve-button">求解！</button>
-        <button id="clear-solution" title="清除解法标记">清除标记</button>
+        <main>
+            <section class="hero" aria-labelledby="page-title">
+                <div>
+                    <p class="eyebrow">LIGHTS OUT · GF(2) SOLVER</p>
+                    <h1 id="page-title">“点灯”谜题<br>求解器</h1>
+                </div>
+                <p class="hero-copy">设置当前盘面，求解器会标出需要按下的格子。所有计算都在你的浏览器中完成。</p>
+            </section>
+
+            <section class="workspace" aria-label="点灯谜题工作区">
+                <aside class="control-panel panel">
+                    <div class="panel-heading">
+                        <div>
+                            <span class="step-label">01</span>
+                            <h2>设置棋盘</h2>
+                        </div>
+                        <span class="local-badge">本地运行</span>
+                    </div>
+
+                    <form id="board-form" class="board-form">
+                        <div class="size-fields">
+                            <label class="field">
+                                <span>行数</span>
+                                <input type="number" id="rows" value="3" min="1" max="15" inputmode="numeric" required>
+                            </label>
+                            <span class="size-separator" aria-hidden="true">×</span>
+                            <label class="field">
+                                <span>列数</span>
+                                <input type="number" id="cols" value="3" min="1" max="15" inputmode="numeric" required>
+                            </label>
+                        </div>
+
+                        <label class="field field-wide">
+                            <span>目标状态</span>
+                            <select id="target-state">
+                                <option value="1">全部点亮</option>
+                                <option value="0">全部熄灭</option>
+                            </select>
+                        </label>
+
+                        <button class="button button-secondary" type="submit">生成新棋盘</button>
+                    </form>
+
+                    <div class="quick-actions" aria-label="盘面快捷操作">
+                        <button class="text-button" type="button" id="random-board">随机可解</button>
+                        <button class="text-button" type="button" id="invert-board">反转盘面</button>
+                        <button class="text-button" type="button" id="clear-board">全部熄灭</button>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="solve-section">
+                        <div class="section-label">
+                            <span class="step-label">02</span>
+                            <h2>计算解法</h2>
+                        </div>
+                        <button class="button button-primary" type="button" id="solve-button">
+                            <span>求解当前盘面</span>
+                            <span aria-hidden="true">→</span>
+                        </button>
+                        <button class="button button-apply" type="button" id="apply-solution" disabled>应用标记步骤</button>
+                        <button class="button button-ghost" type="button" id="clear-solution" disabled>清除解法标记</button>
+                    </div>
+
+                    <div class="legend" aria-label="棋盘图例">
+                        <span><i class="legend-dot light" aria-hidden="true"></i>已点亮</span>
+                        <span><i class="legend-dot dark" aria-hidden="true"></i>已熄灭</span>
+                        <span><i class="legend-ring" aria-hidden="true"></i>需要按下</span>
+                    </div>
+                </aside>
+
+                <section class="board-panel panel" aria-labelledby="board-title">
+                    <div class="board-header">
+                        <div>
+                            <span class="board-kicker">PUZZLE BOARD</span>
+                            <h2 id="board-title">3 × 3 棋盘</h2>
+                        </div>
+                        <div class="board-stats" aria-label="棋盘统计">
+                            <span><strong id="lit-count">0</strong> 点亮</span>
+                            <span><strong id="press-count">—</strong> 步解法</span>
+                        </div>
+                    </div>
+
+                    <div id="message" class="message message-info" role="status" aria-live="polite">
+                        点击格子设置盘面，然后开始求解。
+                    </div>
+
+                    <div class="board-viewport" id="board-viewport">
+                        <div id="board-container" class="board" role="group" aria-label="3 行 3 列点灯棋盘"></div>
+                    </div>
+
+                    <p class="board-tip"><span aria-hidden="true">⌁</span> 点击或使用空格键切换格子；方向键可在棋盘中移动。</p>
+                </section>
+            </section>
+        </main>
+
+        <footer>
+            <span>在设备上即时求解，不上传盘面数据。</span>
+            <span>© 2026 lchigo</span>
+        </footer>
     </div>
 
-    <div id="message" class="message-info">请设置棋盘并求解。</div>
-    <div id="board-container"></div>
-
-    <script>
-        // --- 全局变量 ---
-        let boardContainer;
-        let rowsInput, colsInput;
-        let createBtn, solveBtn, clearBtn;
-        let messageEl;
-        let currentRows = 0;
-        let currentCols = 0;
-
-        // --- 1. 核心求解器 (高斯-若尔当消元法, 模2) ---
-
-        /**
-         * 为 M x N 网格创建 (MN) x (MN) 的切换矩阵 A (模2)
-         */
-        function createToggleMatrix(rows, cols) {
-            const n = rows * cols;
-            // 创建一个 n x n 的零矩阵
-            const A = Array.from({ length: n }, () => Array(n).fill(0));
-
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    // 这是灯 i 的索引
-                    const i = r * cols + c;
-
-                    // 规则：按下 j 会影响 i
-                    // 1. 按压自己 (r, c)
-                    const j_self = r * cols + c;
-                    A[i][j_self] = 1;
-
-                    // 2. 按压上方 (r-1, c)
-                    if (r > 0) {
-                        const j_up = (r - 1) * cols + c;
-                        A[i][j_up] = 1;
-                    }
-                    // 3. 按压下方 (r+1, c)
-                    if (r < rows - 1) {
-                        const j_down = (r + 1) * cols + c;
-                        A[i][j_down] = 1;
-                    }
-                    // 4. 按压左侧 (r, c-1)
-                    if (c > 0) {
-                        const j_left = r * cols + (c - 1);
-                        A[i][j_left] = 1;
-                    }
-                    // 5. 按压右侧 (r, c+1)
-                    if (c < cols - 1) {
-                        const j_right = r * cols + (c + 1);
-                        A[i][j_right] = 1;
-                    }
-                }
-            }
-            return A;
-        }
-
-        /**
-         * 在 GF(2) (模2) 上求解 Ax = d
-         * @param {number[][]} A_in - n x n 切换矩阵
-         * @param {number[]} d_in - n x 1 需求向量
-         * @returns {number[]} 解向量 x
-         * @throws {Error} 如果无解
-         */
-        function solveGaussJordanMod2(A_in, d_in) {
-            // 复制数据，避免修改原始矩阵
-            const A = A_in.map(row => [...row]);
-            const d = [...d_in];
-            const n = A.length;
-
-            // 创建增广矩阵 [A | d]
-            const augMatrix = A.map((row, i) => [...row, d[i]]);
-            
-            for (let i = 0; i < n; i++) {
-                // i 是当前的主元列
-
-                // 1. 寻找主元（在第 i 列，第 i 行或其下方）
-                let pivotRow = i;
-                while (pivotRow < n && augMatrix[pivotRow][i] === 0) {
-                    pivotRow++;
-                }
-
-                if (pivotRow === n) {
-                    // 在该列找不到主元 (奇异矩阵)
-                    // 检查 d[i]...d[n-1] 是否都为 0
-                    for (let k = i; k < n; k++) {
-                        if (augMatrix[k][n] === 1) {
-                            // 如果 d[k] (最后一列) 为 1, 则方程组无解
-                            throw new Error(`系统在第 ${i} 行无解 (奇异矩阵)`);
-                        }
-                    }
-                    // 如果 d[k] 均为 0, 则有无穷多解 (存在自由变量)
-                    // 我们只需继续，自由变量将被视为 0 (不按)
-                    continue;
-                }
-
-                // 2. 将主元行交换到第 i 行
-                if (pivotRow !== i) {
-                    [augMatrix[i], augMatrix[pivotRow]] = [augMatrix[pivotRow], augMatrix[i]];
-                }
-
-                // 3. 消去第 i 列中的所有其他 1
-                for (let k = 0; k < n; k++) {
-                    if (k !== i && augMatrix[k][i] === 1) {
-                        // 在 GF(2) 中, row_k = row_k - row_i 等同于 row_k = row_k + row_i
-                        for (let j = i; j <= n; j++) {
-                            augMatrix[k][j] = (augMatrix[k][j] + augMatrix[i][j]) % 2;
-                        }
-                    }
-                }
-            }
-
-            // 循环结束后, A 部分变成了简化阶梯形
-            // 最后一列 (augMatrix[:, n]) 就是解向量 x
-            const solution = augMatrix.map(row => row[n]);
-            return solution;
-        }
-
-        // --- 2. DOM 与 交互逻辑 ---
-
-        /**
-         * 页面加载时初始化
-         */
-        document.addEventListener('DOMContentLoaded', () => {
-            // 获取 DOM 元素
-            boardContainer = document.getElementById('board-container');
-            rowsInput = document.getElementById('rows');
-            colsInput = document.getElementById('cols');
-            createBtn = document.getElementById('create-board');
-            solveBtn = document.getElementById('solve-button');
-            clearBtn = document.getElementById('clear-solution');
-            messageEl = document.getElementById('message');
-
-            // 绑定事件
-            createBtn.addEventListener('click', () => {
-                const rows = parseInt(rowsInput.value, 10);
-                const cols = parseInt(colsInput.value, 10);
-                generateBoard(rows, cols);
-            });
-            solveBtn.addEventListener('click', solvePuzzle);
-            clearBtn.addEventListener('click', clearSolutionMarkers);
-
-            // 初始生成 3x3 棋盘
-            generateBoard(3, 3);
-        });
-
-        /**
-         * 生成棋盘
-         */
-        function generateBoard(rows, cols) {
-            if (rows < 1 || cols < 1 || rows > 15 || cols > 15) {
-                setMessage('棋盘大小必须在 1x1 和 15x15 之间', 'error');
-                return;
-            }
-            
-            currentRows = rows;
-            currentCols = cols;
-            
-            boardContainer.innerHTML = ''; // 清空旧棋盘
-            boardContainer.style.gridTemplateRows = `repeat(${rows}, 70px)`;
-            boardContainer.style.gridTemplateColumns = `repeat(${cols}, 70px)`;
-
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    const cell = document.createElement('div');
-                    cell.classList.add('cell', 'off'); // 默认全暗
-                    cell.dataset.r = r;
-                    cell.dataset.c = c;
-                    cell.dataset.state = 0; // 0 = off, 1 = on
-                    cell.addEventListener('click', handleCellClick);
-                    boardContainer.appendChild(cell);
-                }
-            }
-            setMessage(`已生成 ${rows}x${cols} 棋盘。请点击格子设置初始状态。`, 'info');
-        }
-
-        /**
-         * 处理格子点击事件（设置初始状态）
-         */
-        function handleCellClick(event) {
-            clearSolutionMarkers(); // 任何改动都会清除旧解法
-            
-            const cell = event.target;
-            const state = parseInt(cell.dataset.state, 10);
-            
-            if (state === 0) {
-                cell.classList.remove('off');
-                cell.classList.add('on');
-                cell.dataset.state = 1;
-            } else {
-                cell.classList.remove('on');
-                cell.classList.add('off');
-                cell.dataset.state = 0;
-            }
-        }
-
-        /**
-         * 清除棋盘上的所有“解法”标记
-         */
-        function clearSolutionMarkers() {
-            const cells = document.querySelectorAll('.cell');
-            cells.forEach(cell => {
-                cell.classList.remove('solution-press');
-            });
-            setMessage('请设置棋盘并求解。', 'info');
-        }
-
-        /**
-         * 求解谜题的主函数
-         */
-        function solvePuzzle() {
-            clearSolutionMarkers(); // 清除上一次的解
-            
-            const n = currentRows * currentCols;
-            if (n === 0) {
-                setMessage('请先生成棋盘', 'error');
-                return;
-            }
-
-            // 1. 获取初始状态 (initialState) 和 目标状态 (targetState)
-            const initialState_flat = new Array(n).fill(0);
-            const targetState_flat = new Array(n).fill(1); // 目标：全部点亮
-            
-            const cells = document.querySelectorAll('.cell');
-            cells.forEach((cell, i) => {
-                initialState_flat[i] = parseInt(cell.dataset.state, 10);
-            });
-
-            // 2. 计算所需的变化向量 d (d = initial XOR target)
-            const d_flat = initialState_flat.map((initial, i) => {
-                return (initial + targetState_flat[i]) % 2;
-            });
-
-            try {
-                // 3. 创建切换矩阵 A
-                const A = createToggleMatrix(currentRows, currentCols);
-                
-                // 4. 求解 Ax = d (mod 2)
-                const solution_flat = solveGaussJordanMod2(A, d_flat);
-                
-                // 5. 在棋盘上显示解
-                displaySolution(solution_flat);
-                
-            } catch (error) {
-                console.error(error);
-                setMessage(error.message || '此状态组合无解！', 'error');
-            }
-        }
-        
-        /**
-         * 将解法显示在棋盘上
-         */
-        function displaySolution(solution_flat) {
-            const cells = document.querySelectorAll('.cell');
-            let pressCount = 0;
-            
-            cells.forEach((cell, i) => {
-                if (solution_flat[i] === 1) {
-                    cell.classList.add('solution-press');
-                    pressCount++;
-                }
-            });
-            
-            if (pressCount === 0) {
-                setMessage('已完成！(无需按压)', 'success');
-            } else {
-                setMessage(`求解成功！请按下 ${pressCount} 个标记的格子。`, 'success');
-            }
-        }
-
-        /**
-         * 设置消息区域的文本和样式
-         */
-        function setMessage(text, type = 'info') {
-            messageEl.textContent = text;
-            messageEl.className = `message-${type}`;
-        }
-
-    </script>
+    <script src="app.js"></script>
 </body>
-
 </html>

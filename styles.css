@@ -145,6 +145,11 @@ h1 {
     font-size: 12px;
 }
 
+.tools-grid {
+    display: grid;
+    gap: 18px;
+}
+
 .tool-card {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;

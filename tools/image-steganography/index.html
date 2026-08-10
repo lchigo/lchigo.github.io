@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0a0c11">
+    <meta name="description" content="在浏览器本地使用 AES-256-GCM 加密内容并隐写到图片中。">
+    <title>图片隐写加密工具</title>
+    <link rel="icon" type="image/png" sizes="64x64" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
+    <div class="app-shell">
+        <header class="topbar">
+            <a class="brand" href="../" aria-label="返回工具目录">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <span>lchigo / tools</span>
+            </a>
+            <span class="privacy-label"><i aria-hidden="true"></i>端到端本地处理</span>
+        </header>
+
+        <main>
+            <section class="hero" aria-labelledby="page-title">
+                <div>
+                    <p class="eyebrow">AES-256-GCM · IMAGE LSB</p>
+                    <h1 id="page-title">图片隐写<br>加密工具</h1>
+                </div>
+                <p class="hero-copy">先加密，再将密文隐藏进图片像素。图片、内容和密码始终留在你的设备上。</p>
+            </section>
+
+            <section class="tool-panel" aria-label="图片隐写操作区">
+                <div class="tabs" role="tablist" aria-label="操作模式">
+                    <button class="tab active" id="hide-tab" type="button" role="tab" aria-selected="true" aria-controls="hide-panel" data-tab="hide">
+                        <span class="tab-number">01</span>
+                        <span><strong>隐藏内容</strong><small>加密并写入图片</small></span>
+                    </button>
+                    <button class="tab" id="extract-tab" type="button" role="tab" aria-selected="false" aria-controls="extract-panel" data-tab="extract" tabindex="-1">
+                        <span class="tab-number">02</span>
+                        <span><strong>提取内容</strong><small>读取并解密数据</small></span>
+                    </button>
+                </div>
+
+                <section class="tab-panel" id="hide-panel" role="tabpanel" aria-labelledby="hide-tab">
+                    <div class="operation-grid">
+                        <form class="form-column" id="hide-form">
+                            <section class="form-section" aria-labelledby="cover-title">
+                                <div class="section-heading">
+                                    <span>1</span>
+                                    <div>
+                                        <h2 id="cover-title">选择载体图片</h2>
+                                        <p>支持 PNG、JPEG、WebP，输出统一为 PNG。</p>
+                                    </div>
+                                </div>
+
+                                <label class="drop-zone" id="cover-drop-zone" for="cover-image">
+                                    <input type="file" id="cover-image" accept="image/png,image/jpeg,image/webp" hidden>
+                                    <span class="drop-icon" aria-hidden="true"></span>
+                                    <span><strong>选择或拖入图片</strong><small>建议使用纹理丰富、尺寸较大的图片</small></span>
+                                </label>
+                                <div class="file-summary" id="cover-summary" hidden></div>
+                            </section>
+
+                            <section class="form-section" aria-labelledby="payload-title">
+                                <div class="section-heading">
+                                    <span>2</span>
+                                    <div>
+                                        <h2 id="payload-title">填写隐藏内容</h2>
+                                        <p>可隐藏一段文本，也可以嵌入任意文件。</p>
+                                    </div>
+                                </div>
+
+                                <div class="segmented-control" aria-label="内容类型">
+                                    <label>
+                                        <input type="radio" name="payload-type" value="text" checked>
+                                        <span>文本</span>
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="payload-type" value="file">
+                                        <span>文件</span>
+                                    </label>
+                                </div>
+
+                                <div id="text-payload-field">
+                                    <label class="field-label" for="secret-text">秘密文本</label>
+                                    <textarea id="secret-text" rows="6" placeholder="输入需要加密隐藏的内容…"></textarea>
+                                </div>
+
+                                <div id="file-payload-field" hidden>
+                                    <label class="file-picker" for="secret-file">
+                                        <input type="file" id="secret-file" hidden>
+                                        <span>选择需要隐藏的文件</span>
+                                        <small id="secret-file-name">尚未选择文件</small>
+                                    </label>
+                                </div>
+                            </section>
+
+                            <section class="form-section" aria-labelledby="encrypt-title">
+                                <div class="section-heading">
+                                    <span>3</span>
+                                    <div>
+                                        <h2 id="encrypt-title">设置加密密码</h2>
+                                        <p>至少 8 位；提取内容时需要输入完全相同的密码。</p>
+                                    </div>
+                                </div>
+
+                                <div class="password-fields">
+                                    <label class="field-label" for="hide-password">密码</label>
+                                    <div class="password-input">
+                                        <input type="password" id="hide-password" minlength="8" autocomplete="new-password" required>
+                                        <button type="button" data-password-toggle="hide-password" aria-label="显示密码">显示</button>
+                                    </div>
+                                    <label class="field-label" for="hide-password-confirm">确认密码</label>
+                                    <div class="password-input">
+                                        <input type="password" id="hide-password-confirm" minlength="8" autocomplete="new-password" required>
+                                        <button type="button" data-password-toggle="hide-password-confirm" aria-label="显示确认密码">显示</button>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <div class="capacity" id="capacity-box">
+                                <div><span>预计占用</span><strong id="capacity-label">等待选择图片</strong></div>
+                                <div class="capacity-track" aria-hidden="true"><span id="capacity-fill"></span></div>
+                            </div>
+
+                            <button class="primary-button" type="submit" id="hide-button">
+                                <span>加密并写入图片</span>
+                                <span aria-hidden="true">→</span>
+                            </button>
+                            <div class="status status-info" id="hide-status" role="status" aria-live="polite">选择图片后即可开始。</div>
+                        </form>
+
+                        <aside class="preview-column" aria-labelledby="hide-preview-title">
+                            <div class="preview-heading">
+                                <div>
+                                    <span class="section-kicker">OUTPUT PREVIEW</span>
+                                    <h2 id="hide-preview-title">输出预览</h2>
+                                </div>
+                                <span class="format-badge">PNG</span>
+                            </div>
+                            <div class="image-preview empty" id="hide-preview">
+                                <img id="hide-preview-image" alt="隐写图片预览" hidden>
+                                <div class="empty-preview" id="hide-preview-empty">
+                                    <span class="preview-glyph" aria-hidden="true"></span>
+                                    <strong>等待生成</strong>
+                                    <small>肉眼外观将与原图基本一致</small>
+                                </div>
+                            </div>
+                            <div class="output-actions" id="hide-output-actions" hidden>
+                                <div><strong id="output-file-name">stego-image.png</strong><small id="output-file-size"></small></div>
+                                <a class="download-button" id="download-stego" href="#" download>下载 PNG</a>
+                            </div>
+                            <div class="warning-note">
+                                <span aria-hidden="true">!</span>
+                                <p><strong>请保留原始 PNG 文件</strong>社交平台压缩、截图、裁剪或转换格式都可能破坏隐藏内容。</p>
+                            </div>
+                        </aside>
+                    </div>
+                </section>
+
+                <section class="tab-panel" id="extract-panel" role="tabpanel" aria-labelledby="extract-tab" hidden>
+                    <div class="operation-grid">
+                        <form class="form-column" id="extract-form">
+                            <section class="form-section" aria-labelledby="stego-title">
+                                <div class="section-heading">
+                                    <span>1</span>
+                                    <div>
+                                        <h2 id="stego-title">选择隐写图片</h2>
+                                        <p>请选择由本工具生成且未被再次处理的 PNG。</p>
+                                    </div>
+                                </div>
+
+                                <label class="drop-zone" id="stego-drop-zone" for="stego-image">
+                                    <input type="file" id="stego-image" accept="image/png" hidden>
+                                    <span class="drop-icon locked" aria-hidden="true"></span>
+                                    <span><strong>选择或拖入 PNG</strong><small>工具会先检查是否存在有效隐写容器</small></span>
+                                </label>
+                                <div class="file-summary" id="stego-summary" hidden></div>
+                            </section>
+
+                            <section class="form-section" aria-labelledby="decrypt-title">
+                                <div class="section-heading">
+                                    <span>2</span>
+                                    <div>
+                                        <h2 id="decrypt-title">输入解密密码</h2>
+                                        <p>密码错误或图片数据被修改时，认证解密会失败。</p>
+                                    </div>
+                                </div>
+
+                                <label class="field-label" for="extract-password">密码</label>
+                                <div class="password-input">
+                                    <input type="password" id="extract-password" autocomplete="current-password" required>
+                                    <button type="button" data-password-toggle="extract-password" aria-label="显示密码">显示</button>
+                                </div>
+                            </section>
+
+                            <button class="primary-button" type="submit" id="extract-button">
+                                <span>读取并解密内容</span>
+                                <span aria-hidden="true">→</span>
+                            </button>
+                            <div class="status status-info" id="extract-status" role="status" aria-live="polite">选择隐写 PNG 后即可提取。</div>
+                        </form>
+
+                        <aside class="preview-column" aria-labelledby="extract-result-title">
+                            <div class="preview-heading">
+                                <div>
+                                    <span class="section-kicker">DECRYPTED CONTENT</span>
+                                    <h2 id="extract-result-title">提取结果</h2>
+                                </div>
+                            </div>
+
+                            <div class="extract-result empty" id="extract-result">
+                                <div class="empty-preview" id="extract-empty">
+                                    <span class="preview-glyph unlocked" aria-hidden="true"></span>
+                                    <strong>等待解密</strong>
+                                    <small>成功后将在这里显示文本或文件信息</small>
+                                </div>
+                                <div class="text-result" id="text-result" hidden>
+                                    <div class="result-bar"><span>文本内容</span><button type="button" id="copy-extracted-text">复制文本</button></div>
+                                    <pre id="extracted-text"></pre>
+                                </div>
+                                <div class="file-result" id="file-result" hidden>
+                                    <span class="file-result-icon" aria-hidden="true"></span>
+                                    <strong id="extracted-file-name"></strong>
+                                    <small id="extracted-file-meta"></small>
+                                    <a class="download-button" id="download-extracted-file" href="#" download>下载原文件</a>
+                                </div>
+                            </div>
+
+                            <div class="security-note">
+                                <span aria-hidden="true">✓</span>
+                                <p><strong>认证加密</strong>AES-GCM 会验证数据完整性，无法用错误密码静默得到错误内容。</p>
+                            </div>
+                        </aside>
+                    </div>
+                </section>
+            </section>
+
+            <section class="method-note" aria-label="使用说明">
+                <div><span>01</span><strong>加密</strong><p>PBKDF2 从密码派生密钥，AES-256-GCM 加密并认证内容。</p></div>
+                <div><span>02</span><strong>隐写</strong><p>密文写入 RGB 通道最低有效位，避免改变图片尺寸和透明度。</p></div>
+                <div><span>03</span><strong>限制</strong><p>隐写用于降低内容可见性，不代表无法被专业隐写分析检测。</p></div>
+            </section>
+        </main>
+
+        <footer>
+            <span>Web Crypto API · AES-256-GCM · PBKDF2-SHA-256</span>
+            <span>© 2026 lchigo</span>
+        </footer>
+    </div>
+
+    <noscript>此工具需要启用 JavaScript 才能进行本地加密和图片处理。</noscript>
+    <script src="app.js"></script>
+</body>
+</html>
