@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'self'; script-src-attr 'none'; style-src 'self'; style-src-attr 'none'; img-src 'self'; font-src 'none'; connect-src 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; frame-src 'none'; manifest-src 'none'; form-action 'none'; trusted-types 'none'; require-trusted-types-for 'script'">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0a0d12">
+    <meta name="description" content="在浏览器本地扫描、批量导入并生成 Google Authenticator 兼容的 TOTP 二次验证码，可使用主密码或 WebAuthn 通行密钥解锁加密存储。">
+    <title>2FA Auth 工具</title>
+    <link rel="icon" type="image/png" sizes="64x64" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
+    <div class="app-shell">
+        <header class="topbar">
+            <a class="brand" href="../" aria-label="返回工具目录">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <span>lchigo / tools</span>
+            </a>
+            <span class="privacy-label"><i aria-hidden="true"></i>本机处理 · 可加密保存</span>
+        </header>
+
+        <main>
+            <section class="hero" aria-labelledby="page-title">
+                <div>
+                    <p class="eyebrow">RFC 6238 · WEB CRYPTO · LOCAL ONLY</p>
+                    <h1 id="page-title">2FA Auth<br>工具</h1>
+                </div>
+                <p class="hero-copy">扫描二维码或批量导入迁移码，在本地生成动态验证码；可用主密码或 WebAuthn 通行密钥解锁加密存储。</p>
+            </section>
+
+            <section class="accounts-panel panel" aria-labelledby="accounts-title">
+                <div class="accounts-heading">
+                    <div>
+                        <span class="section-kicker">IMPORTED ACCOUNTS</span>
+                        <h2 id="accounts-title" tabindex="-1">账户与验证码</h2>
+                    </div>
+                    <div class="accounts-actions">
+                        <span id="accounts-count">0 个账户</span>
+                        <button id="clear-accounts" type="button" disabled>清空账户</button>
+                    </div>
+                </div>
+
+                <section class="vault-compact" aria-labelledby="vault-title">
+                    <div class="vault-compact-heading">
+                        <div>
+                            <span class="section-kicker">ENCRYPTED LOCAL VAULT</span>
+                            <div class="vault-title-row">
+                                <h3 id="vault-title">本机加密存储</h3>
+                                <span class="vault-badge" id="vault-state">检查中</span>
+                            </div>
+                            <p class="vault-description" id="vault-description">正在检查此浏览器中是否已有加密账户。</p>
+                        </div>
+                        <button class="vault-toggle" id="vault-toggle" type="button" aria-expanded="false" aria-controls="vault-form" disabled>检查中</button>
+                    </div>
+
+                    <form class="vault-form" id="vault-form" autocomplete="off" hidden>
+                        <div class="vault-control-row">
+                            <div class="vault-fields">
+                                <label id="vault-password-group">
+                                    <span>主密码</span>
+                                    <input id="vault-password" type="password" minlength="12" maxlength="256" autocomplete="off" spellcheck="false" aria-describedby="vault-password-help" readonly>
+                                </label>
+                            </div>
+                            <div class="vault-actions">
+                                <button class="vault-primary" id="vault-passkey" type="button" hidden>使用通行密钥创建</button>
+                                <button class="vault-primary" id="vault-primary" type="submit">启用并加密保存</button>
+                                <button id="vault-lock" type="button" hidden>立即锁定</button>
+                                <button class="vault-danger" id="vault-remove-passkey" type="button" hidden>移除通行密钥解锁</button>
+                                <button class="vault-danger" id="vault-delete" type="button" hidden>删除加密存储</button>
+                            </div>
+                        </div>
+                        <p class="vault-help" id="vault-password-help">至少 12 个字符；主密码始终可作为恢复方式。</p>
+                        <p class="vault-help vault-passkey-help" id="vault-passkey-help">通行密钥通过 WebAuthn PRF 在本机派生解锁密钥，仅适用于当前域名。</p>
+                    </form>
+
+                    <div class="vault-status status-info" id="vault-status" role="status" aria-live="polite">账户仍处于临时内存模式。</div>
+                </section>
+
+                <p class="accounts-empty" id="accounts-empty">暂无账户。使用右下角的“＋”添加二维码或认证链接。</p>
+                <ul class="accounts-list" id="accounts-list" aria-label="已导入的 TOTP 账户" hidden></ul>
+            </section>
+
+            <button class="import-fab" id="import-toggle" type="button" aria-label="打开账户导入工具" aria-haspopup="dialog" aria-controls="import-dialog" aria-expanded="false">
+                <span aria-hidden="true">+</span>
+            </button>
+
+            <dialog class="import-dialog" id="import-dialog" aria-labelledby="scanner-title" aria-describedby="import-description">
+                <div class="import-sheet">
+                    <div class="scanner-heading">
+                        <div>
+                            <span class="section-kicker">QR SCANNER · BATCH IMPORT</span>
+                            <h2 id="scanner-title">添加账户</h2>
+                            <p class="import-description" id="import-description">扫描二维码、选择多张图片，或粘贴认证链接。</p>
+                        </div>
+                        <button class="button-secondary import-close" id="import-close" type="button" aria-label="关闭账户导入工具">关闭</button>
+                    </div>
+
+                    <div class="scanner-grid">
+                        <div class="scanner-actions">
+                            <label class="scan-button" id="upload-scan-label" for="qr-files" role="button" tabindex="0">
+                                <strong>选择二维码图片</strong>
+                                <small>支持多张 PNG / JPEG / WebP</small>
+                            </label>
+                            <input id="qr-files" class="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple>
+                            <button class="scan-button" id="start-camera" type="button">
+                                <strong>使用摄像头扫描</strong>
+                                <small>需要 HTTPS 和相机权限</small>
+                            </button>
+                        </div>
+
+                        <div class="raw-import">
+                            <label for="raw-import-value">粘贴二维码原始内容</label>
+                            <textarea id="raw-import-value" rows="3" maxlength="200000" spellcheck="false" placeholder="otpauth://totp/... 或 otpauth-migration://offline?data=..."></textarea>
+                            <button id="import-raw-value" type="button">导入内容</button>
+                        </div>
+                    </div>
+
+                    <div class="camera-stage" id="camera-stage" hidden>
+                        <video id="camera-preview" autoplay muted playsinline aria-label="二维码摄像头预览"></video>
+                        <div>
+                            <strong>将二维码放入画面中央</strong>
+                            <button id="stop-camera" type="button">停止摄像头</button>
+                        </div>
+                    </div>
+
+                    <div class="scan-status status-info" id="scan-status" role="status" aria-live="polite">支持单个 TOTP 二维码和 Google Authenticator 批量迁移二维码。</div>
+                </div>
+            </dialog>
+
+            <dialog class="confirm-dialog" id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message confirm-detail">
+                <div class="confirm-shell">
+                    <span class="section-kicker">CONFIRM ACTION</span>
+                    <h2 id="confirm-title">请确认操作</h2>
+                    <p class="confirm-message" id="confirm-message"></p>
+                    <p class="confirm-detail" id="confirm-detail"></p>
+                    <div class="confirm-actions">
+                        <button class="button-secondary" id="confirm-cancel" type="button">取消</button>
+                        <button class="confirm-accept" id="confirm-accept" type="button">确认</button>
+                    </div>
+                </div>
+            </dialog>
+
+      <dialog class="export-dialog" id="export-dialog" aria-labelledby="export-title" aria-describedby="export-warning">
+        <div class="export-shell">
+          <div class="export-heading">
+            <div>
+              <span class="section-kicker">ACCOUNT EXPORT</span>
+              <h2 id="export-title">导出认证配置</h2>
+              <p class="export-identity" id="export-identity"></p>
+            </div>
+            <button class="button-secondary export-close" id="export-close" type="button" aria-label="关闭导出窗口">关闭</button>
+          </div>
+
+          <p class="export-warning" id="export-warning">
+            二维码、链接和密钥都包含完整认证密钥。请勿截图、转发或在不可信设备上打开。
+          </p>
+
+          <div class="export-grid">
+            <section class="export-qr-panel" aria-labelledby="export-qr-title">
+              <h3 id="export-qr-title">二维码</h3>
+              <div class="export-qr-frame">
+                <canvas id="export-qr" aria-label="包含账户认证配置的二维码"></canvas>
+              </div>
+              <button class="button-secondary" id="export-download-qr" type="button">下载二维码 PNG</button>
+            </section>
+
+            <div class="export-data">
+              <label class="export-field" for="export-uri">
+                <span>otpauth 链接</span>
+                <textarea id="export-uri" rows="5" readonly spellcheck="false"></textarea>
+              </label>
+              <button class="button-secondary" id="export-copy-uri" type="button">复制链接</button>
+
+              <label class="export-field" for="export-secret">
+                <span>Base32 密钥</span>
+                <input id="export-secret" type="text" readonly spellcheck="false">
+              </label>
+              <button class="button-secondary" id="export-copy-secret" type="button">复制密钥</button>
+            </div>
+          </div>
+
+          <p class="export-status status-info" id="export-status" role="status" aria-live="polite">
+            导出内容仅在此窗口打开期间显示。
+          </p>
+        </div>
+      </dialog>
+    </main>
+
+        <footer>
+            <span>RFC 6238 · HMAC · Web Crypto API</span>
+            <span>© 2026 lchigo</span>
+        </footer>
+    </div>
+
+    <noscript>此工具需要启用 JavaScript 才能生成 TOTP 验证码。</noscript>
+    <script src="vendor/jsQR-1.4.0.js"></script>
+    <script src="vendor/qrcodegen-v1.8.0-es6.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

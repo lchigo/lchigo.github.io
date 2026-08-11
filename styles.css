@@ -192,6 +192,10 @@ h1 {
     image-rendering: pixelated;
 }
 
+.tool-icon-smooth img {
+    image-rendering: auto;
+}
+
 .tool-content {
     display: flex;
     min-width: 0;
