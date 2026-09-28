@@ -7,19 +7,21 @@
     <title>本地漫画阅读器</title>
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../../theme.css">
 </head>
-<body>
+<body class="reader-page">
     <main class="viewer" id="viewer" aria-busy="false">
         <section id="initial-prompt" aria-labelledby="app-title">
             <div class="prompt-card">
-                <div class="app-mark" aria-hidden="true">📚</div>
+                <div class="app-mark" aria-hidden="true"><img src="../../icons/comic-reader.svg" alt=""></div>
                 <h1 id="app-title">本地漫画阅读器</h1>
                 <p>选择图片文件夹，或直接打开 ZIP / CBZ 漫画包</p>
                 <div class="prompt-actions">
-                    <button type="button" class="primary-button" id="prompt-folder-btn">📂 选择文件夹</button>
-                    <button type="button" id="prompt-archive-btn">🗜️ 打开压缩包</button>
+                    <button type="button" class="primary-button" id="prompt-folder-btn">选择文件夹</button>
+                    <button type="button" id="prompt-archive-btn">打开压缩包</button>
                 </div>
                 <p class="drop-hint">也可以把图片或压缩包拖到这里</p>
+                <nav class="prompt-nav" aria-label="网站导航"><a class="back-link" href="../">全部工具 ↗</a></nav>
             </div>
         </section>
 
@@ -38,9 +40,9 @@
 
     <footer class="controls" aria-label="阅读控制栏">
         <div class="control-group source-group">
-            <button type="button" class="control-button file-button" id="folder-btn">📂 文件夹</button>
+            <button type="button" class="control-button file-button" id="folder-btn">文件夹</button>
             <input type="file" id="folder-input" webkitdirectory directory multiple hidden>
-            <button type="button" class="control-button file-button" id="archive-btn">🗜️ ZIP / CBZ</button>
+            <button type="button" class="control-button file-button" id="archive-btn">ZIP / CBZ</button>
             <input type="file" id="archive-input" accept=".zip,.cbz,application/zip,application/vnd.comicbook+zip" hidden>
             <span id="source-name" class="source-name" title="尚未打开漫画">尚未打开漫画</span>
         </div>

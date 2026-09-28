@@ -1,18 +1,5 @@
 :root {
     color-scheme: dark;
-    --bg: #0a0c11;
-    --panel: rgba(19, 22, 30, 0.94);
-    --panel-deep: #10131a;
-    --text: #f5f7f8;
-    --muted: #969eaa;
-    --line: rgba(255, 255, 255, 0.1);
-    --line-strong: rgba(255, 255, 255, 0.18);
-    --accent: #62e6c1;
-    --accent-bright: #92f2d6;
-    --accent-soft: rgba(98, 230, 193, 0.1);
-    --violet: #9c91ff;
-    --warning: #ffc966;
-    --danger: #ff807d;
 }
 
 * {
@@ -70,7 +57,7 @@ a {
     right: -170px;
     width: 680px;
     height: 680px;
-    background: radial-gradient(circle, rgba(98, 230, 193, 0.1), transparent 69%);
+    background: radial-gradient(circle, rgba(135, 247, 181, 0.1), transparent 69%);
 }
 
 .ambient-two {
@@ -128,7 +115,7 @@ a {
     height: 7px;
     border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 0 10px rgba(98, 230, 193, 0.75);
+    box-shadow: 0 0 10px rgba(135, 247, 181, 0.75);
 }
 
 .hero {
@@ -272,7 +259,7 @@ h1 {
     display: grid;
     width: 27px;
     height: 27px;
-    border: 1px solid rgba(98, 230, 193, 0.3);
+    border: 1px solid rgba(135, 247, 181, 0.3);
     border-radius: 8px;
     background: var(--accent-soft);
     color: var(--accent);
@@ -301,9 +288,9 @@ h1 {
     align-items: center;
     justify-content: center;
     gap: 15px;
-    border: 1px dashed rgba(98, 230, 193, 0.35);
+    border: 1px dashed rgba(135, 247, 181, 0.35);
     border-radius: 14px;
-    background: rgba(98, 230, 193, 0.035);
+    background: rgba(135, 247, 181, 0.035);
     cursor: pointer;
     padding: 18px;
     transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
@@ -340,7 +327,7 @@ h1 {
     border-radius: 8px;
     background:
         radial-gradient(circle at 28% 32%, var(--accent) 0 3px, transparent 4px),
-        linear-gradient(140deg, transparent 46%, rgba(98, 230, 193, 0.42) 47% 61%, transparent 62%);
+        linear-gradient(140deg, transparent 46%, rgba(135, 247, 181, 0.42) 47% 61%, transparent 62%);
 }
 
 .drop-icon::after {
@@ -448,8 +435,8 @@ textarea::placeholder {
 
 textarea:focus,
 .password-input input:focus {
-    border-color: rgba(98, 230, 193, 0.6);
-    box-shadow: 0 0 0 3px rgba(98, 230, 193, 0.1);
+    border-color: rgba(135, 247, 181, 0.6);
+    box-shadow: 0 0 0 3px rgba(135, 247, 181, 0.1);
 }
 
 .file-picker {
@@ -622,8 +609,8 @@ textarea:focus,
 }
 
 .status-success {
-    border-color: rgba(98, 230, 193, 0.24);
-    background: rgba(98, 230, 193, 0.07);
+    border-color: rgba(135, 247, 181, 0.24);
+    background: rgba(135, 247, 181, 0.07);
     color: var(--accent);
 }
 
@@ -650,7 +637,7 @@ textarea:focus,
 }
 
 .format-badge {
-    border: 1px solid rgba(98, 230, 193, 0.24);
+    border: 1px solid rgba(135, 247, 181, 0.24);
     border-radius: 999px;
     background: var(--accent-soft);
     color: var(--accent);
@@ -706,11 +693,11 @@ textarea:focus,
     display: block;
     width: 54px;
     height: 43px;
-    border: 2px solid rgba(98, 230, 193, 0.6);
+    border: 2px solid rgba(135, 247, 181, 0.6);
     border-radius: 11px;
     background:
         radial-gradient(circle at 28% 30%, var(--accent) 0 4px, transparent 5px),
-        linear-gradient(140deg, transparent 45%, rgba(98, 230, 193, 0.32) 46% 62%, transparent 63%);
+        linear-gradient(140deg, transparent 45%, rgba(135, 247, 181, 0.32) 46% 62%, transparent 63%);
 }
 
 .preview-glyph::after {
@@ -806,7 +793,7 @@ textarea:focus,
 }
 
 .security-note {
-    border: 1px solid rgba(98, 230, 193, 0.17);
+    border: 1px solid rgba(135, 247, 181, 0.17);
     background: var(--accent-soft);
 }
 
@@ -905,7 +892,7 @@ textarea:focus,
     height: 66px;
     border: 2px solid var(--accent);
     border-radius: 8px;
-    background: rgba(98, 230, 193, 0.08);
+    background: rgba(135, 247, 181, 0.08);
 }
 
 .file-result strong {

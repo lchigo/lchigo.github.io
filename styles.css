@@ -1,12 +1,5 @@
 :root {
     color-scheme: dark;
-    --bg: #0c0d0f;
-    --surface: #15171a;
-    --surface-hover: #1b1e22;
-    --text: #f6f7f9;
-    --muted: #9ca2ad;
-    --line: rgba(255, 255, 255, 0.11);
-    --accent: #87f7b5;
 }
 
 * {

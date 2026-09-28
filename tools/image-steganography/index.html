@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'self'; script-src-attr 'none'; style-src 'self'; style-src-attr 'none'; img-src 'self' blob:; font-src 'self'; connect-src 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; frame-src 'none'; manifest-src 'none'; form-action 'none'">
     <meta name="color-scheme" content="dark">
-    <meta name="theme-color" content="#0a0c11">
+    <meta name="theme-color" content="#0b0d12">
     <meta name="description" content="在浏览器本地压缩内容，使用 AES-256-GCM 加密并隐写到图片中。">
     <title>图片隐写加密工具</title>
     <link rel="icon" type="image/png" sizes="64x64" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../../theme.css">
 </head>
 <body>
     <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -22,13 +23,13 @@
                 <span class="brand-mark" aria-hidden="true">L</span>
                 <span>lchigo / tools</span>
             </a>
-            <span class="privacy-label"><i aria-hidden="true"></i>端到端本地处理</span>
+            <nav class="site-nav" aria-label="网站导航"><span class="privacy-label"><i aria-hidden="true"></i>端到端本地处理</span><a class="back-link" href="../">全部工具 ↗</a></nav>
         </header>
 
         <main>
             <section class="hero" aria-labelledby="page-title">
                 <div>
-                    <p class="eyebrow">GZIP · AES-256-GCM · IMAGE LSB</p>
+                    <p class="eyebrow">浏览器工具 · 本地运行</p>
                     <h1 id="page-title">图片隐写<br>加密工具</h1>
                 </div>
                 <p class="hero-copy">先压缩和加密，再将密文隐藏进图片像素。图片、内容和密码始终留在你的设备上。</p>
@@ -249,7 +250,7 @@
         </main>
 
         <footer>
-            <span>GZIP · Web Crypto API · AES-256-GCM · PBKDF2-SHA-256</span>
+            <span>浏览器工具 · 本地运行</span>
             <span>© 2026 lchigo</span>
         </footer>
     </div>

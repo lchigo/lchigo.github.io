@@ -1,17 +1,5 @@
 :root {
     color-scheme: dark;
-    --bg: #0b0d12;
-    --panel: rgba(20, 23, 31, 0.9);
-    --panel-strong: #171a22;
-    --text: #f6f7f9;
-    --muted: #9ca2ad;
-    --line: rgba(255, 255, 255, 0.1);
-    --line-strong: rgba(255, 255, 255, 0.18);
-    --accent: #87f7b5;
-    --accent-bright: #b2ffd0;
-    --accent-soft: rgba(135, 247, 181, 0.11);
-    --violet: #b5a3ff;
-    --danger: #ff817e;
 }
 
 * {

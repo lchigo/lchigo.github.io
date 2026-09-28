@@ -8,9 +8,21 @@ GitHub Pages 工具主页。
 .
 ├── index.html
 ├── styles.css
+├── theme.css              # 全站公共主题，在页面样式后加载
+├── icons/                 # 统一的线条图标
 └── tools/
-    └── comic-reader/
+    ├── comic-reader/
+    ├── Lights-Out/
+    ├── password-generator/
+    ├── google-auth-2fa/
+    └── image-steganography/
 ```
+
+## UI 维护
+
+公共颜色、字体、导航、容器宽度和控件规格集中在 `theme.css`；各工具的 `styles.css` 保留功能布局和专属状态样式。点灯棋盘保留黄色点亮状态，漫画阅读器保留全屏布局。
+
+新增工具时，同时更新首页和 `tools/index.html` 的卡片列表与数量。公共主题和图标为本地静态资源，无外部依赖。
 
 ## 本地预览
 

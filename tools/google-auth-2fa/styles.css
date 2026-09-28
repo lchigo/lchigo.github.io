@@ -1,18 +1,5 @@
 :root {
     color-scheme: dark;
-    --bg: #0a0d12;
-    --panel: rgba(18, 23, 31, 0.92);
-    --text: #f5f8fb;
-    --muted: #99a4b2;
-    --line: rgba(255, 255, 255, 0.1);
-    --line-strong: rgba(255, 255, 255, 0.18);
-    --accent: #74d7ff;
-    --accent-bright: #a5e6ff;
-    --accent-soft: rgba(116, 215, 255, 0.1);
-    --violet: #b7a5ff;
-    --success: #87f7b5;
-    --danger: #ff817e;
-    --warning: #ffd27e;
 }
 
 * {
@@ -64,7 +51,7 @@ a {
     right: -180px;
     width: 650px;
     height: 650px;
-    background: radial-gradient(circle, rgba(116, 215, 255, 0.12), transparent 68%);
+    background: radial-gradient(circle, rgba(135, 247, 181, 0.12), transparent 68%);
 }
 
 .ambient-two {
@@ -216,7 +203,7 @@ button.scan-button {
 }
 
 .scan-button:hover:not(:disabled) {
-    border-color: rgba(116, 215, 255, 0.38);
+    border-color: rgba(135, 247, 181, 0.38);
     background: var(--accent-soft);
     transform: translateY(-1px);
 }
@@ -293,7 +280,7 @@ button.scan-button {
 .camera-stage button:hover,
 .accounts-actions button:hover:not(:disabled),
 .account-actions button:hover {
-    border-color: rgba(116, 215, 255, 0.4);
+    border-color: rgba(135, 247, 181, 0.4);
     background: var(--accent-soft);
     color: var(--accent);
 }
@@ -392,9 +379,9 @@ textarea {
 }
 
 textarea:focus {
-    border-color: rgba(116, 215, 255, 0.62);
-    box-shadow: 0 0 0 3px rgba(116, 215, 255, 0.1);
-    background: rgba(116, 215, 255, 0.055);
+    border-color: rgba(135, 247, 181, 0.62);
+    box-shadow: 0 0 0 3px rgba(135, 247, 181, 0.1);
+    background: rgba(135, 247, 181, 0.055);
 }
 
 textarea::placeholder {
@@ -463,9 +450,9 @@ textarea::placeholder {
 }
 
 .vault-fields input:focus {
-    border-color: rgba(116, 215, 255, 0.62);
-    box-shadow: 0 0 0 3px rgba(116, 215, 255, 0.1);
-    background: rgba(116, 215, 255, 0.055);
+    border-color: rgba(135, 247, 181, 0.62);
+    box-shadow: 0 0 0 3px rgba(135, 247, 181, 0.1);
+    background: rgba(135, 247, 181, 0.055);
 }
 
 .vault-help {
@@ -499,7 +486,7 @@ textarea::placeholder {
 }
 
 .vault-actions button:hover:not(:disabled) {
-    border-color: rgba(116, 215, 255, 0.4);
+    border-color: rgba(135, 247, 181, 0.4);
     background: var(--accent-soft);
     color: var(--accent);
 }
@@ -997,7 +984,7 @@ textarea::placeholder {
 .vault-toggle {
     min-width: 74px;
     min-height: 42px;
-    border: 1px solid rgba(116, 215, 255, 0.28);
+    border: 1px solid rgba(135, 247, 181, 0.28);
     border-radius: 10px;
     background: var(--accent-soft);
     color: var(--accent);
@@ -1007,8 +994,8 @@ textarea::placeholder {
 }
 
 .vault-toggle:hover:not(:disabled) {
-    border-color: rgba(116, 215, 255, 0.55);
-    background: rgba(116, 215, 255, 0.15);
+    border-color: rgba(135, 247, 181, 0.55);
+    background: rgba(135, 247, 181, 0.15);
 }
 
 .vault-toggle:disabled {

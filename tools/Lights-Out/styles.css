@@ -1,16 +1,5 @@
 :root {
     color-scheme: dark;
-    --bg: #0b0d12;
-    --panel: rgba(20, 23, 31, 0.9);
-    --panel-strong: #171a22;
-    --text: #f7f5ed;
-    --muted: #9ba1ad;
-    --line: rgba(255, 255, 255, 0.1);
-    --line-strong: rgba(255, 255, 255, 0.18);
-    --accent: #ffd84d;
-    --accent-soft: rgba(255, 216, 77, 0.14);
-    --mint: #73f2c0;
-    --danger: #ff7b78;
     --cell-size: 58px;
     --board-gap: 7px;
 }
@@ -408,7 +397,7 @@ input[type="number"] {
 }
 
 .legend-dot.light {
-    background: var(--accent);
+    background: #ffd84d;
     box-shadow: 0 0 8px rgba(255, 216, 77, 0.6);
 }
 
