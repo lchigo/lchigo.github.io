@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="dark">
+    <meta name="color-scheme" content="light">
+    <meta name="theme-color" content="#f3f5f2">
     <meta name="description" content="lchigo 的浏览器工具目录。">
     <title>Tools · lchigo</title>
     <link rel="icon" type="image/png" sizes="64x64" href="./icon.png">
     <link rel="apple-touch-icon" href="./icon.png">
-    <link rel="stylesheet" href="../styles.css">
     <link rel="stylesheet" href="../theme.css">
+    <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
     <div class="page-shell">
@@ -18,13 +19,12 @@
                 <span class="brand-mark" aria-hidden="true">L</span>
                 <span>lchigo / tools</span>
             </a>
-            <nav class="site-nav" aria-label="网站导航"><a class="back-link" href="../tools/">全部工具 ↗</a>
+            <nav class="site-nav" aria-label="网站导航"><a class="back-link" href="./" aria-current="page">全部工具</a>
             <a class="github-link" href="https://github.com/lchigo" rel="me">GitHub ↗</a></nav>
         </header>
 
         <main>
-            <section class="hero" aria-labelledby="page-title">
-                <p class="eyebrow">BROWSER TOOLBOX</p>
+            <section class="hero home-hero" aria-labelledby="page-title">
                 <h1 id="page-title">所有工具，<br>都在这里。</h1>
                 <p class="hero-copy">无需安装，选择一个工具即可在浏览器中直接使用。</p>
             </section>
@@ -41,8 +41,10 @@
                             <img src="../icons/comic-reader.svg" alt="">
                         </span>
                         <span class="tool-content">
-                            <span class="tool-meta">阅读 · 本地运行</span>
-                            <strong>本地漫画阅读器</strong>
+                            <span class="tool-title">
+                                <strong>本地漫画阅读器</strong>
+                                <span class="tool-meta">阅读</span>
+                            </span>
                             <span class="tool-description">打开图片文件夹或 ZIP / CBZ 漫画包，支持单双页、阅读方向和进度记忆。</span>
                             <span class="tool-tags" aria-label="功能标签">
                                 <span>Offline</span>
@@ -50,7 +52,7 @@
                                 <span>Mobile</span>
                             </span>
                         </span>
-                        <span class="tool-arrow" aria-hidden="true">↗</span>
+                        <span class="tool-arrow" aria-hidden="true"></span>
                     </a>
 
                     <a class="tool-card" href="./Lights-Out/">
@@ -58,8 +60,10 @@
                             <img src="../icons/Lights-Out.svg" alt="">
                         </span>
                         <span class="tool-content">
-                            <span class="tool-meta">谜题 · 在线求解</span>
-                            <strong>“点灯”谜题求解器</strong>
+                            <span class="tool-title">
+                                <strong>“点灯”谜题求解器</strong>
+                                <span class="tool-meta">谜题</span>
+                            </span>
                             <span class="tool-description">在网页中设置点灯谜题盘面，快速计算解法并辅助完成挑战。</span>
                             <span class="tool-tags" aria-label="功能标签">
                                 <span>Solver</span>
@@ -67,7 +71,7 @@
                                 <span>Mobile</span>
                             </span>
                         </span>
-                        <span class="tool-arrow" aria-hidden="true">↗</span>
+                        <span class="tool-arrow" aria-hidden="true"></span>
                     </a>
 
                     <a class="tool-card" href="./password-generator/">
@@ -75,8 +79,10 @@
                             <img src="../icons/password-generator.svg" alt="">
                         </span>
                         <span class="tool-content">
-                            <span class="tool-meta">安全 · 本地生成</span>
-                            <strong>随机密码生成器</strong>
+                            <span class="tool-title">
+                                <strong>随机密码生成器</strong>
+                                <span class="tool-meta">安全</span>
+                            </span>
                             <span class="tool-description">使用加密级随机数批量生成密码，可调整长度、字符类型并排除易混淆字符。</span>
                             <span class="tool-tags" aria-label="功能标签">
                                 <span>Web Crypto</span>
@@ -84,7 +90,7 @@
                                 <span>Privacy</span>
                             </span>
                         </span>
-                        <span class="tool-arrow" aria-hidden="true">↗</span>
+                        <span class="tool-arrow" aria-hidden="true"></span>
                     </a>
 
                     <a class="tool-card" href="./google-auth-2fa/">
@@ -92,8 +98,10 @@
                             <img src="../icons/google-auth-2fa.svg" alt="">
                         </span>
                         <span class="tool-content">
-                            <span class="tool-meta">安全 · 本机加密</span>
-                            <strong>2FA Auth 工具</strong>
+                            <span class="tool-title">
+                                <strong>2FA Auth 工具</strong>
+                                <span class="tool-meta">安全</span>
+                            </span>
                             <span class="tool-description">扫描单个二维码或批量迁移码，本地生成 TOTP，并可使用主密码加密保存账户。</span>
                             <span class="tool-tags" aria-label="功能标签">
                                 <span>TOTP</span>
@@ -101,7 +109,7 @@
                                 <span>Encrypted</span>
                             </span>
                         </span>
-                        <span class="tool-arrow" aria-hidden="true">↗</span>
+                        <span class="tool-arrow" aria-hidden="true"></span>
                     </a>
 
                     <a class="tool-card" href="./image-steganography/">
@@ -109,8 +117,10 @@
                             <img src="../icons/image-steganography.svg" alt="">
                         </span>
                         <span class="tool-content">
-                            <span class="tool-meta">隐私 · 本地加密</span>
-                            <strong>图片隐写加密工具</strong>
+                            <span class="tool-title">
+                                <strong>图片隐写加密工具</strong>
+                                <span class="tool-meta">隐私</span>
+                            </span>
                             <span class="tool-description">使用 AES-256-GCM 加密文本或文件，并将密文隐藏进图片像素中，也可在本地提取解密。</span>
                             <span class="tool-tags" aria-label="功能标签">
                                 <span>AES-GCM</span>
@@ -118,14 +128,14 @@
                                 <span>Offline</span>
                             </span>
                         </span>
-                        <span class="tool-arrow" aria-hidden="true">↗</span>
+                        <span class="tool-arrow" aria-hidden="true"></span>
                     </a>
                 </div>
             </section>
         </main>
 
         <footer>
-            <span>浏览器工具 · 本地运行</span>
+            <span>所有工具都在你的浏览器中运行</span>
             <span>© 2026 lchigo</span>
         </footer>
     </div>

@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="color-scheme" content="dark">
-    <meta name="theme-color" content="#0b0d12">
+    <meta name="color-scheme" content="light">
+    <meta name="theme-color" content="#f3f5f2">
     <meta name="description" content="在浏览器中设置、求解并验证点灯谜题，支持 1×1 至 15×15 棋盘。">
     <title>“点灯”谜题求解器</title>
     <link rel="icon" type="image/png" href="icon.png">
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="../../theme.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="ambient ambient-one" aria-hidden="true"></div>
-    <div class="ambient ambient-two" aria-hidden="true"></div>
 
     <div class="app-shell">
         <header class="topbar">
@@ -21,13 +19,12 @@
                 <span class="brand-mark" aria-hidden="true">L</span>
                 <span>lchigo / tools</span>
             </a>
-            <nav class="site-nav" aria-label="网站导航"><span class="privacy-label"><i aria-hidden="true"></i>本机处理</span><a class="back-link" href="../">全部工具 ↗</a></nav>
+            <nav class="site-nav" aria-label="网站导航"><span class="privacy-label"><i aria-hidden="true"></i>本机处理</span><a class="back-link" href="../">全部工具</a></nav>
         </header>
 
         <main>
             <section class="hero" aria-labelledby="page-title">
                 <div>
-                    <p class="eyebrow">浏览器工具 · 本地运行</p>
                     <h1 id="page-title">“点灯”谜题<br>求解器</h1>
                 </div>
                 <p class="hero-copy">设置当前盘面，求解器会标出需要按下的格子。所有计算都在你的浏览器中完成。</p>
@@ -37,10 +34,9 @@
                 <aside class="control-panel panel">
                     <div class="panel-heading">
                         <div>
-                            <span class="step-label">01</span>
+                            <span class="step-label">1</span>
                             <h2>设置棋盘</h2>
                         </div>
-                        <span class="local-badge">本地运行</span>
                     </div>
 
                     <form id="board-form" class="board-form">
@@ -77,12 +73,11 @@
 
                     <div class="solve-section">
                         <div class="section-label">
-                            <span class="step-label">02</span>
+                            <span class="step-label">2</span>
                             <h2>计算解法</h2>
                         </div>
                         <button class="button button-primary" type="button" id="solve-button">
                             <span>求解当前盘面</span>
-                            <span aria-hidden="true">→</span>
                         </button>
                         <button class="button button-apply" type="button" id="apply-solution" disabled>应用标记步骤</button>
                         <button class="button button-ghost" type="button" id="clear-solution" disabled>清除解法标记</button>
@@ -98,7 +93,6 @@
                 <section class="board-panel panel" aria-labelledby="board-title">
                     <div class="board-header">
                         <div>
-                            <span class="board-kicker">PUZZLE BOARD</span>
                             <h2 id="board-title">3 × 3 棋盘</h2>
                         </div>
                         <div class="board-stats" aria-label="棋盘统计">
@@ -121,7 +115,7 @@
         </main>
 
         <footer>
-            <span>浏览器工具 · 本地运行</span>
+            <span>所有处理都在你的浏览器中完成</span>
             <span>© 2026 lchigo</span>
         </footer>
     </div>

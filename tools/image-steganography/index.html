@@ -4,18 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'self'; script-src-attr 'none'; style-src 'self'; style-src-attr 'none'; img-src 'self' blob:; font-src 'self'; connect-src 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; frame-src 'none'; manifest-src 'none'; form-action 'none'">
-    <meta name="color-scheme" content="dark">
-    <meta name="theme-color" content="#0b0d12">
+    <meta name="color-scheme" content="light">
+    <meta name="theme-color" content="#f3f5f2">
     <meta name="description" content="在浏览器本地压缩内容，使用 AES-256-GCM 加密并隐写到图片中。">
     <title>图片隐写加密工具</title>
     <link rel="icon" type="image/png" sizes="64x64" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="../../theme.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="ambient ambient-one" aria-hidden="true"></div>
-    <div class="ambient ambient-two" aria-hidden="true"></div>
 
     <div class="app-shell">
         <header class="topbar">
@@ -23,13 +21,12 @@
                 <span class="brand-mark" aria-hidden="true">L</span>
                 <span>lchigo / tools</span>
             </a>
-            <nav class="site-nav" aria-label="网站导航"><span class="privacy-label"><i aria-hidden="true"></i>端到端本地处理</span><a class="back-link" href="../">全部工具 ↗</a></nav>
+            <nav class="site-nav" aria-label="网站导航"><span class="privacy-label"><i aria-hidden="true"></i>端到端本地处理</span><a class="back-link" href="../">全部工具</a></nav>
         </header>
 
         <main>
             <section class="hero" aria-labelledby="page-title">
                 <div>
-                    <p class="eyebrow">浏览器工具 · 本地运行</p>
                     <h1 id="page-title">图片隐写<br>加密工具</h1>
                 </div>
                 <p class="hero-copy">先压缩和加密，再将密文隐藏进图片像素。图片、内容和密码始终留在你的设备上。</p>
@@ -38,11 +35,9 @@
             <section class="tool-panel" aria-label="图片隐写操作区">
                 <div class="tabs" role="tablist" aria-label="操作模式">
                     <button class="tab active" id="hide-tab" type="button" role="tab" aria-selected="true" aria-controls="hide-panel" data-tab="hide">
-                        <span class="tab-number">01</span>
                         <span><strong>隐藏内容</strong><small>压缩、加密并写入图片</small></span>
                     </button>
                     <button class="tab" id="extract-tab" type="button" role="tab" aria-selected="false" aria-controls="extract-panel" data-tab="extract" tabindex="-1">
-                        <span class="tab-number">02</span>
                         <span><strong>提取内容</strong><small>读取并解密数据</small></span>
                     </button>
                 </div>
@@ -131,7 +126,6 @@
 
                             <button class="primary-button" type="submit" id="hide-button">
                                 <span>压缩、加密并写入图片</span>
-                                <span aria-hidden="true">→</span>
                             </button>
                             <div class="status status-info" id="hide-status" role="status" aria-live="polite">选择图片后即可开始。</div>
                         </form>
@@ -139,7 +133,6 @@
                         <aside class="preview-column" aria-labelledby="hide-preview-title">
                             <div class="preview-heading">
                                 <div>
-                                    <span class="section-kicker">OUTPUT PREVIEW</span>
                                     <h2 id="hide-preview-title">输出预览</h2>
                                 </div>
                                 <span class="format-badge">PNG</span>
@@ -202,7 +195,6 @@
 
                             <button class="primary-button" type="submit" id="extract-button">
                                 <span>读取并解密内容</span>
-                                <span aria-hidden="true">→</span>
                             </button>
                             <div class="status status-info" id="extract-status" role="status" aria-live="polite">选择隐写 PNG 后即可提取。</div>
                         </form>
@@ -210,7 +202,6 @@
                         <aside class="preview-column" aria-labelledby="extract-result-title">
                             <div class="preview-heading">
                                 <div>
-                                    <span class="section-kicker">DECRYPTED CONTENT</span>
                                     <h2 id="extract-result-title">提取结果</h2>
                                 </div>
                             </div>
@@ -243,14 +234,14 @@
             </section>
 
             <section class="method-note" aria-label="使用说明">
-                <div><span>01</span><strong>压缩加密</strong><p>先用 gzip 压缩，再通过 PBKDF2 和 AES-256-GCM 加密认证。</p></div>
-                <div><span>02</span><strong>隐写</strong><p>按密码派生的顺序，将密文分散写入 RGB 通道最低有效位。</p></div>
-                <div><span>03</span><strong>限制</strong><p>隐写用于降低内容可见性，不代表无法被专业隐写分析检测。</p></div>
+                <div><strong>压缩加密</strong><p>先用 gzip 压缩，再通过 PBKDF2 和 AES-256-GCM 加密认证。</p></div>
+                <div><strong>隐写</strong><p>按密码派生的顺序，将密文分散写入 RGB 通道最低有效位。</p></div>
+                <div><strong>限制</strong><p>隐写用于降低内容可见性，不代表无法被专业隐写分析检测。</p></div>
             </section>
         </main>
 
         <footer>
-            <span>浏览器工具 · 本地运行</span>
+            <span>所有处理都在你的浏览器中完成</span>
             <span>© 2026 lchigo</span>
         </footer>
     </div>

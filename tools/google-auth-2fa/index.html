@@ -4,18 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'self'; script-src-attr 'none'; style-src 'self'; style-src-attr 'none'; img-src 'self'; font-src 'none'; connect-src 'none'; media-src 'none'; worker-src 'none'; child-src 'none'; frame-src 'none'; manifest-src 'none'; form-action 'none'; trusted-types 'none'; require-trusted-types-for 'script'">
-    <meta name="color-scheme" content="dark">
-    <meta name="theme-color" content="#0b0d12">
+    <meta name="color-scheme" content="light">
+    <meta name="theme-color" content="#f3f5f2">
     <meta name="description" content="在浏览器本地扫描、批量导入并生成 Google Authenticator 兼容的 TOTP 二次验证码，可使用主密码或 WebAuthn 通行密钥解锁加密存储。">
     <title>2FA Auth 工具</title>
     <link rel="icon" type="image/png" sizes="64x64" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="../../theme.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="ambient ambient-one" aria-hidden="true"></div>
-    <div class="ambient ambient-two" aria-hidden="true"></div>
 
     <div class="app-shell">
         <header class="topbar">
@@ -23,13 +21,12 @@
                 <span class="brand-mark" aria-hidden="true">L</span>
                 <span>lchigo / tools</span>
             </a>
-            <nav class="site-nav" aria-label="网站导航"><span class="privacy-label"><i aria-hidden="true"></i>本机处理 · 可加密保存</span><a class="back-link" href="../">全部工具 ↗</a></nav>
+            <nav class="site-nav" aria-label="网站导航"><span class="privacy-label"><i aria-hidden="true"></i>本机处理 · 可加密保存</span><a class="back-link" href="../">全部工具</a></nav>
         </header>
 
         <main>
             <section class="hero" aria-labelledby="page-title">
                 <div>
-                    <p class="eyebrow">浏览器工具 · 本地运行</p>
                     <h1 id="page-title">2FA Auth<br>工具</h1>
                 </div>
                 <p class="hero-copy">扫描二维码或批量导入迁移码，在本地生成动态验证码；可用主密码或 WebAuthn 通行密钥解锁加密存储。</p>
@@ -38,7 +35,6 @@
             <section class="accounts-panel panel" aria-labelledby="accounts-title">
                 <div class="accounts-heading">
                     <div>
-                        <span class="section-kicker">IMPORTED ACCOUNTS</span>
                         <h2 id="accounts-title" tabindex="-1">账户与验证码</h2>
                     </div>
                     <div class="accounts-actions">
@@ -50,7 +46,6 @@
                 <section class="vault-compact" aria-labelledby="vault-title">
                     <div class="vault-compact-heading">
                         <div>
-                            <span class="section-kicker">ENCRYPTED LOCAL VAULT</span>
                             <div class="vault-title-row">
                                 <h3 id="vault-title">本机加密存储</h3>
                                 <span class="vault-badge" id="vault-state">检查中</span>
@@ -95,7 +90,6 @@
                 <div class="import-sheet">
                     <div class="scanner-heading">
                         <div>
-                            <span class="section-kicker">QR SCANNER · BATCH IMPORT</span>
                             <h2 id="scanner-title">添加账户</h2>
                             <p class="import-description" id="import-description">扫描二维码、选择多张图片，或粘贴认证链接。</p>
                         </div>
@@ -136,7 +130,6 @@
 
             <dialog class="confirm-dialog" id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message confirm-detail">
                 <div class="confirm-shell">
-                    <span class="section-kicker">CONFIRM ACTION</span>
                     <h2 id="confirm-title">请确认操作</h2>
                     <p class="confirm-message" id="confirm-message"></p>
                     <p class="confirm-detail" id="confirm-detail"></p>
@@ -151,7 +144,6 @@
         <div class="export-shell">
           <div class="export-heading">
             <div>
-              <span class="section-kicker">ACCOUNT EXPORT</span>
               <h2 id="export-title">导出认证配置</h2>
               <p class="export-identity" id="export-identity"></p>
             </div>
@@ -194,7 +186,7 @@
     </main>
 
         <footer>
-            <span>浏览器工具 · 本地运行</span>
+            <span>所有处理都在你的浏览器中完成</span>
             <span>© 2026 lchigo</span>
         </footer>
     </div>
